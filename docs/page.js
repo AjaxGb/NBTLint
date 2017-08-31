@@ -1,10 +1,13 @@
 var input  = document.getElementById("in"),
-    output = document.getElementById("out");
+    output = document.getElementById("out"),
+    spaces = document.getElementById("spaces"),
+    indent = document.getElementById("indent"),
+    parsedData;
 
 document.getElementById("go").onclick = function() {
-	var nbt;
+	parsedData = undefined;
 	try {
-		nbt = NBT.parse(input.value);
+		parsedData = NBT.parse(input.value);
 	} catch (e) {
 		console.log(e);
 		output.value = e.error;
@@ -13,5 +16,19 @@ document.getElementById("go").onclick = function() {
 		}
 		return;
 	}
-	output.value = NBT.stringify(nbt, "\t");
+	updateOutput();
+};
+
+function updateOutput() {
+	if (parsedData) {
+		output.value = NBT.stringify(parsedData, (spaces.checked ?
+			"        ".substr(0, +indent.value) :
+			"\t"));
+	}
+}
+
+spaces.onclick = updateOutput;
+indent.oninput = function() {
+	updateOutput();
+	document.body.className = "tab-" + indent.value;
 };

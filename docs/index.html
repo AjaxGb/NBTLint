@@ -3,15 +3,70 @@
 <head>
 	<title>NBT Lint</title>
 	<style>
+	* {
+		margin: 0;
+		box-sizing: border-box;
+	}
+	body {
+		margin: 10px;
+	}
 	textarea {
-		tab-size: 4;
+		display: block;
+	}
+	textarea[disabled] {
+		color: #000;
+		background: rgb(245, 245, 238);
+	}
+	.tab-8 { tab-size: 8; }
+	.tab-7 { tab-size: 7; }
+	.tab-6 { tab-size: 6; }
+	.tab-5 { tab-size: 5; }
+	.tab-4 { tab-size: 4; }
+	.tab-3 { tab-size: 3; }
+	.tab-2 { tab-size: 2; }
+	.tab-1 { tab-size: 1; }
+	.tab-0 { tab-size: 0; }
+	#go {
+		margin: 5px 0;
+	}
+	#controls {
+		display: block;
+		position: absolute;
+		top: 5px;
+		right: 5px;
+		width: 300px;
+		padding: 10px;
+		background: rgba(240, 240, 245, 0.8);
+		z-index: 10;
+	}
+	#controls label {
+		display: block;
+		height: 1.5em;
+	}
+	#controls label input {
+		display: inline-block;
+		width: 50px;
 	}
 	</style>
 </head>
-<body>
-	<textarea id="in" cols="70" rows="20"></textarea>
-	<p><input id="go" type="button" value="Submit"></p>
-	<textarea id="out" cols="70" rows="20" disabled></textarea>
+<body class="tab-4">
+	<p>
+		<textarea id="in" cols="70" rows="20"></textarea>
+	</p>
+	<p>
+		<input id="go" type="button" value="Validate">
+	</p>
+	<p>
+		<textarea id="out" cols="70" rows="20" disabled></textarea>
+	</p>
+	<section id="controls">
+		<label>
+			<input id="spaces" type="checkbox"> Use spaces
+		</label>
+		<label>
+			<input id="indent" type="number" min="0" max="8" value="4"> Indent depth
+		</label>
+	</section>
 	<script src="nbt.js"></script>
 	<script src="page.js"></script>
 </body>
