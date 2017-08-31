@@ -89,3 +89,8 @@ input[type="checkbox"] {
 	margin-top: 10px;
 	width: 150px;
 }
+.back-link {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+}
