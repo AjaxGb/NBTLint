@@ -73,6 +73,11 @@ textarea[disabled] {
 input {
 	display: inline-block;
 }
+input[type="checkbox"] {
+    vertical-align: middle;
+    position: relative;
+    bottom: 1.5px;
+}
 #controls label {
 	display: block;
 	height: 1.5em;
