@@ -2,6 +2,7 @@ var input  = document.getElementById("in"),
     output = document.getElementById("out"),
     spaces = document.getElementById("spaces"),
     indent = document.getElementById("indent"),
+    sortKeys = document.getElementById("sortKeys"),
     parsedData;
 
 function validateNBT() {
@@ -22,13 +23,15 @@ document.getElementById("go").onclick = validateNBT;
 
 function updateOutput() {
 	if (parsedData) {
-		output.value = NBT.stringify(parsedData, (spaces.checked ?
-			"        ".substr(0, +indent.value) :
-			"\t"));
+		output.value = NBT.stringify(parsedData,
+			(spaces.checked ? "        ".substr(0, +indent.value) : "\t"),
+			{
+				sortKeys: sortKeys.checked
+			});
 	}
 }
+spaces.onclick = sortKeys.onclick = updateOutput;
 
-spaces.onclick = updateOutput;
 indent.oninput = function() {
 	updateOutput();
 	if (indent.value.length === 1 && indent.value >= "0" && indent.value <= "8") {
@@ -64,6 +67,7 @@ document.getElementById("link").onclick = function() {
 		input: input.value,
 		ws: spaces.checked ? "spaces" : "tabs",
 		indent: indent.value,
+		sort: sortKeys.checked,
 	});
 };
 
@@ -72,6 +76,7 @@ function loadLink() {
 	input.value = args.input || "";
 	spaces.checked = args.ws === "spaces";
 	if ("indent" in args) indent.value = args.indent|0;
+	sortKeys.checked = args.sort;
 	if (input.value) {
 		validateNBT();
 	} else {

@@ -43,30 +43,32 @@ var NBT = {
 	TagArrayLong: function() {
 		NBT.TagList.call(this, NBT.TagLong, "L;");
 	},
-	stringify: function(value, space) {
-		return NBT._printCompound(value, space, "");
+	stringify: function(value, space, options) {
+		if (space == null) space = "\t";
+		options = options || {};
+		return NBT._printCompound(value, space, "", options);
 	},
-	_printValue: function(value, space, indent) {
+	_printValue: function(value, space, indent, options) {
 		switch (value.constructor) {
 		case NBT.TagString:
-			return NBT._printString(value.value);
+			return NBT._printString(value.value, false, options);
 		case NBT.TagByte:
 		case NBT.TagShort:
 		case NBT.TagInteger:
 		case NBT.TagLong:
 		case NBT.TagFloat:
 		case NBT.TagDouble:
-			return NBT._printNumber(value);
+			return NBT._printNumber(value, options);
 		case NBT.TagCompound:
-			return NBT._printCompound(value, space, indent);
+			return NBT._printCompound(value, space, indent, options);
 		case NBT.TagList:
 		case NBT.TagArrayByte:
 		case NBT.TagArrayInt:
 		case NBT.TagArrayLong:
-			return NBT._printList(value, space, indent);
+			return NBT._printList(value, space, indent, options);
 		}
 	},
-	_printString: function(str, avoidQuotes) {
+	_printString: function(str, avoidQuotes, options) {
 		if (!avoidQuotes || NBT.quotedCharRE.test(str)) {
 			return '"' + str
 				.replace(/\\/g, '\\\\')
@@ -74,26 +76,38 @@ var NBT = {
 		}
 		return str;
 	},
-	_printNumber: function(number) {
+	_printNumber: function(number, options) {
 		return number.value + number.suffix;
 	},
-	_printCompound: function(value, space, indent) {
+	_printCompound: function(value, space, indent, options) {
 		if (value.pairs.length === 0) return "{}";
 		var oldIndent = indent,
 			indent = oldIndent + space,
-			l = value.pairs.length - 1,
+			list = value.pairs,
+			l = list.length - 1,
 			str = "{\n",
 			i;
+		if (options.sortKeys) {
+			list = list.slice().sort(function(a, b) {
+				var nameA = a[0], nameAI = nameA.toLowerCase(),
+				    nameB = b[0], nameBI = nameB.toLowerCase();
+				if (nameAI < nameBI) return -1;
+				if (nameAI > nameBI) return  1;
+				if (nameA < nameB) return -1;
+				if (nameA > nameB) return  1;
+				return 0;
+			});
+		}
 		for (i = 0; i < l; ++i) {
-			str += indent + NBT._printString(value.pairs[i][0], true) + ": ";
-			str += NBT._printValue(value.pairs[i][1], space, indent);
+			str += indent + NBT._printString(list[i][0], true, options) + ": ";
+			str += NBT._printValue(list[i][1], space, indent, options);
 			str += ",\n";
 		}
-		str += indent + NBT._printString(value.pairs[i][0], true) + ": ";
-		str += NBT._printValue(value.pairs[i][1], space, indent) + "\n";
+		str += indent + NBT._printString(list[i][0], true, options) + ": ";
+		str += NBT._printValue(list[i][1], space, indent, options) + "\n";
 		return str + oldIndent + "}";
 	},
-	_printList: function(value, space, indent) {
+	_printList: function(value, space, indent, options) {
 		if (value.list.length === 0) return "[" + value.arrayPrefix + "]";
 		var l = value.list.length - 1,
 			str = "[" + value.arrayPrefix,
@@ -102,19 +116,19 @@ var NBT = {
 			// One line
 			if (value.arrayPrefix) str += " ";
 			for (i = 0; i < l; ++i) {
-				str += NBT._printValue(value.list[i]) + ", ";
+				str += NBT._printValue(value.list[i], "", "", options) + ", ";
 			}
-			return str + NBT._printValue(value.list[i]) + "]";
+			return str + NBT._printValue(value.list[i], "", "", options) + "]";
 		}
 		// Multi-line
 		var oldIndent = indent,
 			indent = oldIndent + space;
 		str += "\n";
 		for (i = 0; i < l; ++i) {
-			str += indent + NBT._printValue(value.list[i], space, indent);
+			str += indent + NBT._printValue(value.list[i], space, indent, options);
 			str += ",\n";
 		}
-		str += indent + NBT._printValue(value.list[i], space, indent) + "\n";
+		str += indent + NBT._printValue(value.list[i], space, indent, options) + "\n";
 		return str + oldIndent + "]";
 	},
 	parse: function(value) {
