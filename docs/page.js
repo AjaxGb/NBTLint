@@ -76,7 +76,7 @@ function loadLink() {
 	input.value = args.input || "";
 	spaces.checked = args.ws === "spaces";
 	if ("indent" in args) indent.value = args.indent|0;
-	sortKeys.checked = args.sort;
+	sortKeys.checked = args.sort !== "false";
 	if (input.value) {
 		validateNBT();
 	} else {
