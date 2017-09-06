@@ -130,10 +130,12 @@ var NBT = {
 			indent = oldIndent + space;
 		if (!options.deflate) str += "\n";
 		for (i = 0; i < l; ++i) {
-			str += indent + NBT._printValue(value.list[i], space, indent, options);
-			str += options.deflate ? ",\n" : ",";
+			if (!options.deflate) str += indent;
+			str += NBT._printValue(value.list[i], space, indent, options);
+			str += options.deflate ? "," : ",\n";
 		}
-		str += indent + NBT._printValue(value.list[i], space, indent, options);
+		if (!options.deflate) str += indent;
+		str += NBT._printValue(value.list[i], space, indent, options);
 		if (!options.deflate) str += "\n" + oldIndent;
 		return str + "]";
 	},
