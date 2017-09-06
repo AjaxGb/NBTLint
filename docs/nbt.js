@@ -80,6 +80,42 @@ var NBT = {
 	_printNumber: function(number, options) {
 		return number.value + number.suffix;
 	},
+	compareAlpha: function(a, b) {
+		var nameA = a[0], nameAI = nameA.toLowerCase(),
+				nameB = b[0], nameBI = nameB.toLowerCase();
+		if (nameAI < nameBI) return -1;
+		if (nameAI > nameBI) return  1;
+		if (nameA < nameB) return -1;
+		if (nameA > nameB) return  1;
+		return 0;
+	},
+	compareType: function(a, b) {
+		var orderA = a[1].sortOrder,
+				orderB = b[1].sortOrder;
+		if (orderA < orderB) return -1;
+		if (orderA > orderB) return  1;
+		if (a[1].constructor !== NBT.TagList) return 0;
+		orderA = a[1].type.prototype.sortOrder;
+		orderB = b[1].type.prototype.sortOrder;
+		if (orderA < orderB) return -1;
+		if (orderA > orderB) return  1;
+		return 0;
+	},
+	compareTypeAlpha: function(a, b) {
+		return NBT.compareType(a, b) || NBT.compareAlpha(a, b);
+	},
+	stableSorted: function(list, cmp) {
+		cmp = cmp || function(a, b) {
+			if (a < b) return -1;
+			if (a > b) return 1;
+			return 0;
+		};
+		var indexed = list.map(function(e, i) { return [e, i]; });
+		indexed.sort(function(a, b) {
+			return cmp(a[0], b[0]) || (a[1] - b[1]);
+		});
+		return indexed.map(function(e) { return e[0] });
+	},
 	_printCompound: function(value, space, indent, options) {
 		if (value.pairs.length === 0) return "{}";
 		var oldIndent = indent,
@@ -88,16 +124,8 @@ var NBT = {
 			l = list.length - 1,
 			str = options.deflate ? "{" : "{\n",
 			i;
-		if (options.sortKeys) {
-			list = list.slice().sort(function(a, b) {
-				var nameA = a[0], nameAI = nameA.toLowerCase(),
-				    nameB = b[0], nameBI = nameB.toLowerCase();
-				if (nameAI < nameBI) return -1;
-				if (nameAI > nameBI) return  1;
-				if (nameA < nameB) return -1;
-				if (nameA > nameB) return  1;
-				return 0;
-			});
+		if (options.sort) {
+			list = NBT.stableSorted(list, options.sort);
 		}
 		for (i = 0; i < l; ++i) {
 			if (!options.deflate) str += indent;
@@ -470,6 +498,18 @@ NBT.TagCompound.prototype.tagName  = "TAG_Compound";
 NBT.TagArrayByte.prototype.tagName = "TAG_Byte_Array";
 NBT.TagArrayInt.prototype.tagName  = "TAG_Int_Array";
 NBT.TagArrayLong.prototype.tagName = "TAG_Long_Array";
+NBT.TagString.prototype.sortOrder    =  0;
+NBT.TagByte.prototype.sortOrder      =  1;
+NBT.TagShort.prototype.sortOrder     =  2;
+NBT.TagInteger.prototype.sortOrder   =  3;
+NBT.TagLong.prototype.sortOrder      =  4;
+NBT.TagFloat.prototype.sortOrder     =  5;
+NBT.TagDouble.prototype.sortOrder    =  6;
+NBT.TagCompound.prototype.sortOrder  =  7;
+NBT.TagArrayByte.prototype.sortOrder =  8;
+NBT.TagArrayInt.prototype.sortOrder  =  9;
+NBT.TagArrayLong.prototype.sortOrder = 10;
+NBT.TagList.prototype.sortOrder      = 11;
 
 NBT.TagCompound.prototype.add = function(key, value) {
 	if (key in this.map) {

@@ -2,7 +2,8 @@ var input  = document.getElementById("in"),
     output = document.getElementById("out"),
     spaces = document.getElementById("spaces"),
     indent = document.getElementById("indent"),
-    sortKeys = document.getElementById("sortKeys"),
+    sortType  = document.getElementById("sortType"),
+    sortAlpha = document.getElementById("sortAlpha"),
     quoteKeys = document.getElementById("quoteKeys"),
     quoteStrings = document.getElementById("quoteStrings"),
     deflate = document.getElementById("deflate"),
@@ -26,18 +27,26 @@ document.getElementById("go").onclick = validateNBT;
 
 function updateOutput() {
 	if (parsedData) {
+		var sort = false;
+		if (sortAlpha.checked && sortType.checked) {
+			sort = NBT.compareTypeAlpha;
+		} else if (sortType.checked) {
+			sort = NBT.compareType;
+		} else if (sortAlpha.checked) {
+			sort = NBT.compareAlpha;
+		}
 		output.value = NBT.stringify(parsedData,
 			(spaces.checked ? "        ".substr(0, +indent.value) : "\t"),
 			{
-				sortKeys: sortKeys.checked,
+				sort: sort,
 				quoteKeys: quoteKeys.checked,
 				unquoteStrings: !quoteStrings.checked,
 				deflate: deflate.checked,
 			});
 	}
 }
-spaces.onclick = sortKeys.onclick = quoteKeys.onclick = quoteStrings.onclick =
-	deflate.onclick = updateOutput;
+spaces.onclick = sortAlpha.onclick = sortType.onclick = quoteKeys.onclick =
+	quoteStrings.onclick = deflate.onclick = updateOutput;
 
 indent.oninput = function() {
 	updateOutput();
@@ -75,7 +84,8 @@ document.getElementById("link").onclick = function() {
 		ws: spaces.checked ? "spaces" : "tabs",
 		indent: indent.value,
 	};
-	if (sortKeys.checked) args.sort = undefined;
+	if (sortType.checked)  args.sortT = undefined;
+	if (sortAlpha.checked) args.sortA = undefined;
 	if (quoteKeys.checked) args.qKeys = undefined;
 	if (!quoteStrings.checked) args.unqStr = undefined;
 	if (deflate.checked) args.deflate = undefined;
@@ -87,7 +97,8 @@ function loadLink() {
 	input.value = args.input || "";
 	spaces.checked = args.ws === "spaces";
 	if ("indent" in args) indent.value = args.indent|0;
-	sortKeys.checked = "sort" in args;
+	sortType.checked  = "sortT" in args;
+	sortAlpha.checked = "sortA" in args;
 	quoteKeys.checked = "qKeys" in args;
 	quoteStrings.checked = !("unqStr" in args);
 	deflate.checked = "deflate" in args;
