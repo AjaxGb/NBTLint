@@ -68,8 +68,9 @@ var NBT = {
 			return NBT._printList(value, space, indent, options);
 		}
 	},
-	_printString: function(str, avoidQuotes, options) {
-		if (!avoidQuotes || NBT.quotedCharRE.test(str)) {
+	_printString: function(str, isKey, options) {
+		if ((isKey ? options.quoteKeys : !options.unquoteStrings)
+				|| NBT.quotedCharRE.test(str)) {
 			return '"' + str
 				.replace(/\\/g, '\\\\')
 				.replace(/"/g, '\\"') + '"';
@@ -85,7 +86,7 @@ var NBT = {
 			indent = oldIndent + space,
 			list = value.pairs,
 			l = list.length - 1,
-			str = "{\n",
+			str = options.deflate ? "{" : "{\n",
 			i;
 		if (options.sortKeys) {
 			list = list.slice().sort(function(a, b) {
@@ -99,13 +100,16 @@ var NBT = {
 			});
 		}
 		for (i = 0; i < l; ++i) {
-			str += indent + NBT._printString(list[i][0], true, options) + ": ";
+			if (!options.deflate) str += indent;
+			str += NBT._printString(list[i][0], true, options) + (options.deflate ? ":" : ": ");
 			str += NBT._printValue(list[i][1], space, indent, options);
-			str += ",\n";
+			str += options.deflate ? "," : ",\n";
 		}
-		str += indent + NBT._printString(list[i][0], true, options) + ": ";
-		str += NBT._printValue(list[i][1], space, indent, options) + "\n";
-		return str + oldIndent + "}";
+		if (!options.deflate) str += indent;
+		str += NBT._printString(list[i][0], true, options) + (options.deflate ? ":" : ": ");
+		str += NBT._printValue(list[i][1], space, indent, options);
+		if (!options.deflate) str += "\n" + oldIndent;
+		return str + "}";
 	},
 	_printList: function(value, space, indent, options) {
 		if (value.list.length === 0) return "[" + value.arrayPrefix + "]";
@@ -114,22 +118,24 @@ var NBT = {
 			i;
 		if (value.list[0] instanceof NBT.TagNumber || value.type === NBT.TagString) {
 			// One line
-			if (value.arrayPrefix) str += " ";
+			if (value.arrayPrefix && !options.deflate) str += " ";
 			for (i = 0; i < l; ++i) {
-				str += NBT._printValue(value.list[i], "", "", options) + ", ";
+				str += NBT._printValue(value.list[i], "", "", options) +
+					(options.deflate ? "," : ", ");
 			}
 			return str + NBT._printValue(value.list[i], "", "", options) + "]";
 		}
 		// Multi-line
 		var oldIndent = indent,
 			indent = oldIndent + space;
-		str += "\n";
+		if (!options.deflate) str += "\n";
 		for (i = 0; i < l; ++i) {
 			str += indent + NBT._printValue(value.list[i], space, indent, options);
-			str += ",\n";
+			str += options.deflate ? ",\n" : ",";
 		}
-		str += indent + NBT._printValue(value.list[i], space, indent, options) + "\n";
-		return str + oldIndent + "]";
+		str += indent + NBT._printValue(value.list[i], space, indent, options);
+		if (!options.deflate) str += "\n" + oldIndent;
+		return str + "]";
 	},
 	parse: function(value) {
 		return NBT._Parser.parse(value);
@@ -172,7 +178,8 @@ var NBT = {
 			if (canRead && this.peek() === expected) {
 				++this.cursor;
 			} else {
-				var message = "Expected '" + expected + "' but got '" + (canRead ? this.peek() : "<EOF>") + "'";
+				var message = "Expected '" + expected + "' but got '" +
+					(canRead ? this.peek() : "<EOF>") + "'";
 				++this.cursor;
 				throw this.exception(message);
 			}
@@ -231,7 +238,8 @@ var NBT = {
 			case "{":
 				return this.readCompound();
 			case "[":
-				return this.peek(1) !== '"' && this.peek(2) === ";" ? this.readArrayTag() : this.readListTag();
+				return this.peek(1) !== '"' && this.peek(2) === ";" ?
+					this.readArrayTag() : this.readListTag();
 			case '"':
 				return new NBT.TagString(this.readQuotedString());
 			}
@@ -275,7 +283,8 @@ var NBT = {
 				
 				var currValue = this.readValue();
 				if (currValue.constructor !== array.type) {
-					throw this.exception("Unable to insert " + currValue.tagName + " into " + array.tagName);
+					throw this.exception("Unable to insert " + currValue.tagName +
+						" into " + array.tagName);
 				}
 				array.add(currValue);
 				if (this.hasElementSeparator()) {
@@ -301,7 +310,8 @@ var NBT = {
 					try {	
 						list.add(val);
 					} catch (e) {
-						throw this.exception("Unable to insert " + val.tagName + " into ListTag of type " + list.type.prototype.tagName);
+						throw this.exception("Unable to insert " + val.tagName +
+							" into ListTag of type " + list.type.prototype.tagName);
 					}
 					if (!this.hasElementSeparator()) break;
 					if (!this.canRead()) throw this.exception("Expected a value");

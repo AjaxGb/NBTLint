@@ -3,6 +3,9 @@ var input  = document.getElementById("in"),
     spaces = document.getElementById("spaces"),
     indent = document.getElementById("indent"),
     sortKeys = document.getElementById("sortKeys"),
+    quoteKeys = document.getElementById("quoteKeys"),
+    quoteStrings = document.getElementById("quoteStrings"),
+    deflate = document.getElementById("deflate"),
     parsedData;
 
 function validateNBT() {
@@ -26,11 +29,15 @@ function updateOutput() {
 		output.value = NBT.stringify(parsedData,
 			(spaces.checked ? "        ".substr(0, +indent.value) : "\t"),
 			{
-				sortKeys: sortKeys.checked
+				sortKeys: sortKeys.checked,
+				quoteKeys: quoteKeys.checked,
+				unquoteStrings: !quoteStrings.checked,
+				deflate: deflate.checked,
 			});
 	}
 }
-spaces.onclick = sortKeys.onclick = updateOutput;
+spaces.onclick = sortKeys.onclick = quoteKeys.onclick = quoteStrings.onclick =
+	deflate.onclick = updateOutput;
 
 indent.oninput = function() {
 	updateOutput();
@@ -63,12 +70,16 @@ function setQueryArgs(query) {
 }
 
 document.getElementById("link").onclick = function() {
-	window.location.search = setQueryArgs({
+	var args = {
 		input: input.value,
 		ws: spaces.checked ? "spaces" : "tabs",
 		indent: indent.value,
-		sort: sortKeys.checked,
-	});
+	};
+	if (sortKeys.checked) args.sort = undefined;
+	if (quoteKeys.checked) args.qKeys = undefined;
+	if (!quoteStrings.checked) args.unqStr = undefined;
+	if (deflate.checked) args.deflate = undefined;
+	window.location.search = setQueryArgs(args);
 };
 
 function loadLink() {
@@ -76,7 +87,10 @@ function loadLink() {
 	input.value = args.input || "";
 	spaces.checked = args.ws === "spaces";
 	if ("indent" in args) indent.value = args.indent|0;
-	sortKeys.checked = args.sort !== "false";
+	sortKeys.checked = "sort" in args;
+	quoteKeys.checked = "qKeys" in args;
+	quoteStrings.checked = !("unqStr" in args);
+	deflate.checked = "deflate" in args;
 	if (input.value) {
 		validateNBT();
 	} else {
