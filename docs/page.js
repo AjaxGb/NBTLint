@@ -63,7 +63,11 @@ function validateNBT() {
 	updateOutput();
 }
 document.getElementById("go").onclick = function() {
-	location.hash = "#" + input.value.replace(/%/g, "%%").replace(/\n/g, "%n");
+	location.hash = "#" + input.value.replace(/[%\n#]/g, function(m) {
+		var esc = m.charCodeAt(0).toString(16);
+		if (esc.length < 2) esc = "0" + esc;
+		return "%" + esc;
+	});
 	validateNBT();
 };
 
@@ -93,10 +97,7 @@ function updateOutput() {
 }
 
 function loadLink() {
-	var linkInput = location.hash.substr(1).replace(/%[%n]/g, function(m) {
-		if (m === "%%") return "%";
-		return "\n";
-	});
+	var linkInput = decodeURIComponent(location.hash.substr(1));
 	
 	if (linkInput === input.value) {
 		return;
