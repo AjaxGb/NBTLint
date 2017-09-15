@@ -62,7 +62,10 @@ function validateNBT() {
 	}
 	updateOutput();
 }
-document.getElementById("go").onclick = validateNBT;
+document.getElementById("go").onclick = function() {
+	location.hash = "#" + input.value.replace(/%/g, "%%").replace(/\n/g, "%n");
+	validateNBT();
+};
 
 function updateOutput() {
 	if (parsedData) {
@@ -88,10 +91,6 @@ function updateOutput() {
 			});
 	}
 }
-
-document.getElementById("link").onclick = function() {
-	location.hash = "#" + input.value.replace(/%/g, "%%").replace(/\n/g, "%n");
-};
 
 function loadLink() {
 	var linkInput = location.hash.substr(1).replace(/%[%n]/g, function(m) {
