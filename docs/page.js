@@ -1,13 +1,52 @@
 var input  = document.getElementById("in"),
     output = document.getElementById("out"),
-    spaces = document.getElementById("spaces"),
-    indent = document.getElementById("indent"),
-    sortType  = document.getElementById("sortType"),
-    sortAlpha = document.getElementById("sortAlpha"),
-    quoteKeys = document.getElementById("quoteKeys"),
-    quoteStrings = document.getElementById("quoteStrings"),
-    deflate = document.getElementById("deflate"),
+    settings = {
+    	deflate     : document.getElementById("deflate"),
+	    spaces      : document.getElementById("spaces"),
+	    indent      : document.getElementById("indent"),
+	    sortType    : document.getElementById("sortType"),
+	    sortAlpha   : document.getElementById("sortAlpha"),
+	    quoteKeys   : document.getElementById("quoteKeys"),
+	    quoteStrings: document.getElementById("quoteStrings"),
+	    capitalL    : document.getElementById("capitalL"),
+	    capitalSuff : document.getElementById("capitalSuff"),
+    },
     parsedData;
+
+function updateSetting(item) {
+	updateOutput();
+	item = item instanceof Event ? this : item || this;
+	localStorage.setItem(item.id, item.type === "checkbox" ? item.checked : item.value);
+}
+
+for (var name in settings) {
+	var el = settings[name];
+	el[el.type === "checkbox" ? "onclick" : "oninput"] = updateSetting;
+}
+indent.oninput = function() {
+	updateSetting(this);
+	var val = settings.indent.value;
+	if (val.length === 1 && val >= "0" && val <= "8") {
+		document.body.className = "tab-" + val;
+	}
+};
+
+function loadSettings() {
+	for (var name in settings) {
+		var el = settings[name], val = localStorage.getItem(el.id);
+		
+		if (val !== null) {
+			if (el.type === "checkbox") {
+				el.checked = (val !== "false");
+				el.onclick();
+			} else {
+				el.value = val;
+				el.oninput();
+			}
+		}
+	}
+}
+loadSettings();
 
 function validateNBT() {
 	parsedData = undefined;
@@ -28,84 +67,49 @@ document.getElementById("go").onclick = validateNBT;
 function updateOutput() {
 	if (parsedData) {
 		var sort = false;
-		if (sortAlpha.checked && sortType.checked) {
+		if (settings.sortAlpha.checked && settings.sortType.checked) {
 			sort = NBT.compareTypeAlpha;
-		} else if (sortType.checked) {
+		} else if (settings.sortType.checked) {
 			sort = NBT.compareType;
-		} else if (sortAlpha.checked) {
+		} else if (settings.sortAlpha.checked) {
 			sort = NBT.compareAlpha;
 		}
 		output.value = NBT.stringify(parsedData,
-			(spaces.checked ? "        ".substr(0, +indent.value) : "\t"),
+			(settings.spaces.checked ? "        ".substr(0, +settings.indent.value) : "\t"),
 			{
 				sort: sort,
-				quoteKeys: quoteKeys.checked,
-				unquoteStrings: !quoteStrings.checked,
-				deflate: deflate.checked,
+				quoteKeys: settings.quoteKeys.checked,
+				unquoteStrings: !settings.quoteStrings.checked,
+				deflate: settings.deflate.checked,
+				capitalizeSuffix: {
+					l: settings.capitalL.checked,
+					default: settings.capitalSuff.checked,
+				},
 			});
 	}
 }
-spaces.onclick = sortAlpha.onclick = sortType.onclick = quoteKeys.onclick =
-	quoteStrings.onclick = deflate.onclick = updateOutput;
-
-indent.oninput = function() {
-	updateOutput();
-	if (indent.value.length === 1 && indent.value >= "0" && indent.value <= "8") {
-		document.body.className = "tab-" + indent.value;
-	}
-};
-
-function getQueryArgs(query) {
-	query = (query || window.location.search).substring(1);
-	if (!query) return {};
-	return query.split("&").reduce(function(prev, curr) {
-		var p = curr.split("=");
-		prev[decodeURIComponent(p[0])] = p[1] ? decodeURIComponent(p[1]) : p[1];
-		return prev;
-	}, {});
-}
-
-function setQueryArgs(query) {
-	if (!query) return;
-	let search = "";
-	for (let prop in query){
-		if (query[prop] === undefined) {
-			search += "&" + encodeURIComponent(prop);
-		} else {
-			search += "&" + encodeURIComponent(prop) + "=" + encodeURIComponent(query[prop]);
-		}
-	}
-	return "?" + search.substr(1);
-}
 
 document.getElementById("link").onclick = function() {
-	var args = {
-		input: input.value,
-		ws: spaces.checked ? "spaces" : "tabs",
-		indent: indent.value,
-	};
-	if (sortType.checked)  args.sortT = undefined;
-	if (sortAlpha.checked) args.sortA = undefined;
-	if (quoteKeys.checked) args.qKeys = undefined;
-	if (!quoteStrings.checked) args.unqStr = undefined;
-	if (deflate.checked) args.deflate = undefined;
-	window.location.search = setQueryArgs(args);
+	location.hash = "#" + input.value.replace(/%/g, "%%").replace(/\n/g, "%n");
 };
 
 function loadLink() {
-	var args = getQueryArgs();
-	input.value = args.input || "";
-	spaces.checked = args.ws === "spaces";
-	if ("indent" in args) indent.value = args.indent|0;
-	sortType.checked  = "sortT" in args;
-	sortAlpha.checked = "sortA" in args;
-	quoteKeys.checked = "qKeys" in args;
-	quoteStrings.checked = !("unqStr" in args);
-	deflate.checked = "deflate" in args;
+	var linkInput = location.hash.substr(1).replace(/%[%n]/g, function(m) {
+		if (m === "%%") return "%";
+		return "\n";
+	});
+	
+	if (linkInput === input.value) {
+		return;
+	} else {
+		input.value = linkInput;
+	}
+	
 	if (input.value) {
 		validateNBT();
 	} else {
 		output.value = "";
 	}
 }
+document.addEventListener("hashchange", loadLink);
 loadLink();

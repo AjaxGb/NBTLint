@@ -46,7 +46,8 @@ var NBT = {
 	stringify: function(value, space, options) {
 		if (space == null) space = "\t";
 		options = options || {};
-		return NBT._printCompound(value, space, "", options);
+		options.capitalizeSuffix = options.capitalizeSuffix || {};
+		return NBT._printValue(value, space, "", options);
 	},
 	_printValue: function(value, space, indent, options) {
 		switch (value.constructor) {
@@ -78,7 +79,9 @@ var NBT = {
 		return str;
 	},
 	_printNumber: function(number, options) {
-		return number.value + number.suffix;
+		var cap = options.capitalizeSuffix[number.suffix];
+		if (cap == null) cap = options.capitalizeSuffix["default"];
+		return number.value + (cap ? number.suffix.toUpperCase() : number.suffix);
 	},
 	compareAlpha: function(a, b) {
 		var nameA = a[0], nameAI = nameA.toLowerCase(),
