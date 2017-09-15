@@ -63,7 +63,7 @@ function validateNBT() {
 	updateOutput();
 }
 document.getElementById("go").onclick = function() {
-	location.hash = "#" + input.value.replace(/[%\n#]/g, function(m) {
+	location.hash = "#" + input.value.replace(/[%\n\0]/g, function(m) {
 		var esc = m.charCodeAt(0).toString(16);
 		if (esc.length < 2) esc = "0" + esc;
 		return "%" + esc;
@@ -111,5 +111,5 @@ function loadLink() {
 		output.value = "";
 	}
 }
-document.addEventListener("hashchange", loadLink);
+document.onhashchange = input.onfocus = loadLink;
 loadLink();
