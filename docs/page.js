@@ -111,5 +111,5 @@ function loadLink() {
 		output.value = "";
 	}
 }
-document.onhashchange = input.onfocus = loadLink;
+window.onhashchange = document.onhashchange = loadLink;
 loadLink();
