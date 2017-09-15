@@ -1,7 +1,17 @@
 var NBT = {
 	quotedCharRE: /[^a-zA-Z0-9._+\-]/,
-	TagString: function(value, needQuotes) {
+	TagString: function(value) {
 		this.value = value;
+		this.needQuotes = NBT.quotedCharRE.test(value);
+		if (!this.needQuotes) {
+			var num;
+			try {
+				num = NBT._Parser.parseNumber(value);
+			} catch (e) {
+				return;
+			}
+			if (num) this.needQuotes = true;
+		}
 	},
 	TagNumber: function(value, suffix) {
 		this.value = value;
@@ -52,7 +62,7 @@ var NBT = {
 	_printValue: function(value, space, indent, options) {
 		switch (value.constructor) {
 		case NBT.TagString:
-			return NBT._printString(value.value, false, options);
+			return NBT._printString(value, false, options);
 		case NBT.TagByte:
 		case NBT.TagShort:
 		case NBT.TagInteger:
@@ -70,13 +80,12 @@ var NBT = {
 		}
 	},
 	_printString: function(str, isKey, options) {
-		if ((isKey ? options.quoteKeys : !options.unquoteStrings)
-				|| NBT.quotedCharRE.test(str)) {
-			return '"' + str
+		if (str.needQuotes || (isKey ? options.quoteKeys : !options.unquoteStrings)) {
+			return '"' + str.value
 				.replace(/\\/g, '\\\\')
 				.replace(/"/g, '\\"') + '"';
 		}
-		return str;
+		return str.value;
 	},
 	_printNumber: function(number, options) {
 		var cap = options.capitalizeSuffix[number.suffix];
@@ -84,8 +93,8 @@ var NBT = {
 		return number.value + (cap ? number.suffix.toUpperCase() : number.suffix);
 	},
 	compareAlpha: function(a, b) {
-		var nameA = a[0], nameAI = nameA.toLowerCase(),
-				nameB = b[0], nameBI = nameB.toLowerCase();
+		var nameA = a[0].value, nameAI = nameA.toLowerCase(),
+		    nameB = b[0].value, nameBI = nameB.toLowerCase();
 		if (nameAI < nameBI) return -1;
 		if (nameAI > nameBI) return  1;
 		if (nameA < nameB) return -1;
@@ -94,7 +103,7 @@ var NBT = {
 	},
 	compareType: function(a, b) {
 		var orderA = a[1].sortOrder,
-				orderB = b[1].sortOrder;
+		    orderB = b[1].sortOrder;
 		if (orderA < orderB) return -1;
 		if (orderA > orderB) return  1;
 		if (a[1].constructor !== NBT.TagList) return 0;
@@ -516,9 +525,9 @@ NBT.TagList.prototype.sortOrder      = 11;
 
 NBT.TagCompound.prototype.add = function(key, value) {
 	if (key in this.map) {
-		throw "Duplicate key: " + NBT._printString(key, true);
+		throw "Duplicate key: " + NBT._printString(new NBT.TagString(key), true);
 	}
-	this.pairs.push([key, value]);
+	this.pairs.push([new NBT.TagString(key), value]);
 	this.map[key] = value;
 };
 NBT.TagList.prototype.add = function(value) {
