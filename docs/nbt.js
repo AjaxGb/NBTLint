@@ -1,9 +1,10 @@
 var NBT = {
 	quotedCharRE: /[^a-zA-Z0-9._+\-]/,
-	TagString: function(value) {
+	TagString: function(value, isKey) {
 		this.value = value;
+		this.isKey = !!isKey;
 		this.needQuotes = NBT.quotedCharRE.test(value);
-		if (!this.needQuotes) {
+		if (!this.needQuotes && !isKey) {
 			var num;
 			try {
 				num = NBT._Parser.parseNumber(value);
@@ -62,7 +63,7 @@ var NBT = {
 	_printValue: function(value, space, indent, options) {
 		switch (value.constructor) {
 		case NBT.TagString:
-			return NBT._printString(value, false, options);
+			return NBT._printString(value, options);
 		case NBT.TagByte:
 		case NBT.TagShort:
 		case NBT.TagInteger:
@@ -79,8 +80,8 @@ var NBT = {
 			return NBT._printList(value, space, indent, options);
 		}
 	},
-	_printString: function(str, isKey, options) {
-		if (str.needQuotes || (isKey ? options.quoteKeys : !options.unquoteStrings)) {
+	_printString: function(str, options) {
+		if (str.needQuotes || (str.isKey ? options.quoteKeys : !options.unquoteStrings)) {
 			return '"' + str.value
 				.replace(/\\/g, '\\\\')
 				.replace(/"/g, '\\"') + '"';
@@ -141,12 +142,12 @@ var NBT = {
 		}
 		for (i = 0; i < l; ++i) {
 			if (!options.deflate) str += indent;
-			str += NBT._printString(list[i][0], true, options) + (options.deflate ? ":" : ": ");
+			str += NBT._printString(list[i][0], options) + (options.deflate ? ":" : ": ");
 			str += NBT._printValue(list[i][1], space, indent, options);
 			str += options.deflate ? "," : ",\n";
 		}
 		if (!options.deflate) str += indent;
-		str += NBT._printString(list[i][0], true, options) + (options.deflate ? ":" : ": ");
+		str += NBT._printString(list[i][0], options) + (options.deflate ? ":" : ": ");
 		str += NBT._printValue(list[i][1], space, indent, options);
 		if (!options.deflate) str += "\n" + oldIndent;
 		return str + "}";
@@ -283,18 +284,18 @@ var NBT = {
 				return this.peek(1) !== '"' && this.peek(2) === ";" ?
 					this.readArrayTag() : this.readListTag();
 			case '"':
-				return new NBT.TagString(this.readQuotedString());
+				return new NBT.TagString(this.readQuotedString(), false);
 			}
 			var s = this.readUnquotedString(), num;
 			if (!s) throw this.exception("Expected a value");
 			try {
 				num = this.parseNumber(s);
 			} catch (e) {
-				s = new NBT.TagString(s);
+				s = new NBT.TagString(s, false);
 				s.limitErr = e;
 				return s;
 			}
-			return num || new NBT.TagString(s);
+			return num || new NBT.TagString(s, false);
 		},
 		readArrayTag: function() {
 			this.expect("[");
@@ -525,9 +526,9 @@ NBT.TagList.prototype.sortOrder      = 11;
 
 NBT.TagCompound.prototype.add = function(key, value) {
 	if (key in this.map) {
-		throw "Duplicate key: " + NBT._printString(new NBT.TagString(key), true);
+		throw "Duplicate key: " + NBT._printString(new NBT.TagString(key, true), {});
 	}
-	this.pairs.push([new NBT.TagString(key), value]);
+	this.pairs.push([new NBT.TagString(key, true), value]);
 	this.map[key] = value;
 };
 NBT.TagList.prototype.add = function(value) {
