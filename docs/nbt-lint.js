@@ -601,6 +601,12 @@ nbtlint.TagInteger.prototype.constructor = nbtlint.TagInteger;
 nbtlint.TagLong.prototype.constructor    = nbtlint.TagLong;
 nbtlint.TagFloat.prototype.constructor   = nbtlint.TagFloat;
 nbtlint.TagDouble.prototype.constructor  = nbtlint.TagDouble;
+nbtlint.TagArrayByte.prototype = Object.create(nbtlint.TagList.prototype);
+nbtlint.TagArrayInt.prototype  = Object.create(nbtlint.TagList.prototype);
+nbtlint.TagArrayLong.prototype = Object.create(nbtlint.TagList.prototype);
+nbtlint.TagArrayByte.prototype.constructor = nbtlint.TagArrayByte;
+nbtlint.TagArrayInt.prototype.constructor  = nbtlint.TagArrayInt;
+nbtlint.TagArrayLong.prototype.constructor = nbtlint.TagArrayLong;
 nbtlint.TagByte.prototype.suffix    = "b";
 nbtlint.TagShort.prototype.suffix   = "s";
 nbtlint.TagInteger.prototype.suffix = "";
@@ -634,12 +640,6 @@ if (typeof ArrayBuffer !== "undefined" && typeof Float32Array !== "undefined" &&
 }
 nbtlint.TagDouble.prototype.minValue  = -Number.MAX_VALUE;
 nbtlint.TagDouble.prototype.maxValue  =  Number.MAX_VALUE;
-nbtlint.TagArrayByte.prototype = Object.create(nbtlint.TagList.prototype);
-nbtlint.TagArrayInt.prototype  = Object.create(nbtlint.TagList.prototype);
-nbtlint.TagArrayLong.prototype = Object.create(nbtlint.TagList.prototype);
-nbtlint.TagArrayByte.prototype.constructor = nbtlint.TagArrayByte;
-nbtlint.TagArrayInt.prototype.constructor  = nbtlint.TagArrayInt;
-nbtlint.TagArrayLong.prototype.constructor = nbtlint.TagArrayLong;
 nbtlint.TagByte.prototype.tagName      = "TAG_Byte";
 nbtlint.TagShort.prototype.tagName     = "TAG_Short";
 nbtlint.TagInteger.prototype.tagName   = "TAG_Int";
