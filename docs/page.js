@@ -1,3 +1,5 @@
+"use strict";
+
 var input  = document.getElementById("in"),
     output = document.getElementById("out"),
     settings = {
@@ -51,7 +53,7 @@ loadSettings();
 function validateNBT() {
 	parsedData = undefined;
 	try {
-		parsedData = NBT.parse(input.value);
+		parsedData = nbtlint.parse(input.value);
 	} catch (e) {
 		console.log(e);
 		output.value = e.message;
@@ -75,13 +77,13 @@ function updateOutput() {
 	if (parsedData) {
 		var sort = false;
 		if (settings.sortAlpha.checked && settings.sortType.checked) {
-			sort = NBT.compareTypeAlpha;
+			sort = nbtlint.compareTypeAlpha;
 		} else if (settings.sortType.checked) {
-			sort = NBT.compareType;
+			sort = nbtlint.compareType;
 		} else if (settings.sortAlpha.checked) {
-			sort = NBT.compareAlpha;
+			sort = nbtlint.compareAlpha;
 		}
-		output.value = NBT.stringify(parsedData,
+		output.value = nbtlint.stringify(parsedData,
 			(settings.spaces.checked ? "        ".substr(0, +settings.indent.value) : "\t"),
 			{
 				sort: sort,
