@@ -132,8 +132,8 @@ var nbtlint = {
 	/**
 	 * An NBT List tag
 	 * @constructor
-	 * @param {Function} [type=undefined] - The type of the list. Leave undefined to auto-detect, or specify a Tag constructor.
-	 * @param {Tag[]} [values] - An array of Tags to insert into the list.
+	 * @param {Function} [type=undefined] - The type of the list. Leave undefined to auto-detect, or specify a TagBase constructor.
+	 * @param {TagBase[]} [values] - An array of Tags to insert into the list.
 	 */
 	TagList: function(type, values) {
 		this.type = type ? type : undefined;
@@ -167,17 +167,18 @@ var nbtlint = {
 		nbtlint.TagList.call(this, nbtlint.TagLong, values);
 	},
 	/**
-	 * Convert a Tag to a textual representation
-	 * @param {Tag} value - The Tag to stringify.
+	 * Convert a TagBase to a textual representation
+	 * @param {TagBase} value - The Tag to stringify.
 	 * @param {string} [space="\t"] - The string to use for indentation.
 	 *
 	 * @param {Object}   [options] - Extra options.
-	 * @param {Function} [options.sort]             - A sorting function to use on compound values. Recommended: nbtlint.compareAlpha, nbtlint.compareType, nbtlint.compareTypeAlpha.
+	 * @param {Function} [options.sort]             - A sorting function to use on compound key-value pairs.
+	 *                                                Recommended: nbtlint.compareAlpha, nbtlint.compareType, nbtlint.compareTypeAlpha.
 	 * @param {boolean}  [options.quoteKeys]        - Force all keys to be quoted.
 	 * @param {boolean}  [options.unquoteStrings]   - Avoid quoting non-key strings when possible.
 	 * @param {boolean}  [options.deflate]          - Remove all unnecessary whitespace in the result.
 	 * @param {Object}   [options.capitalizeSuffix] - Which number suffixes to capitalize.
-	 * @param {Tag}  [options.capitalizeSuffix.default=false] - Whether to capitalize unmentioned suffixes.
+	 * @param {TagBase}  [options.capitalizeSuffix.default=false] - Whether to capitalize unmentioned suffixes.
 	 *
 	 * @returns {string}
 	 */
@@ -190,7 +191,7 @@ var nbtlint = {
 	/**
 	 * Parse the textual representation of an NBT Tag.
 	 * @param {string} value - The string to parse.
-	 * @returns {Tag} - The parsed Tag.
+	 * @returns {TagBase} - The parsed Tag.
 	 */
 	parse: function(value) {
 		return nbtlint._Parser.parse(value);
@@ -343,7 +344,7 @@ var nbtlint = {
 		/**
 		 * Parse the textual representation of an NBT Tag.
 		 * @param {string} value - The string to parse.
-		 * @returns {Tag} - The parsed Tag.
+		 * @returns {TagBase} - The parsed Tag.
 		 */
 		parse: function(value) {
 			this.string = value;
@@ -698,7 +699,7 @@ nbtlint.TagList.prototype.sortOrder      = 11;
 /**
  * Add a Tag to a Compound.
  * @param {string} key - The key of the new Tag.
- * @param {Tag} value - The Tag to add.
+ * @param {TagBase} value - The Tag to add.
  */
 nbtlint.TagCompound.prototype.add = function(key, value) {
 	if (key in this.map) {
@@ -710,7 +711,7 @@ nbtlint.TagCompound.prototype.add = function(key, value) {
 /**
  * Remove a Tag from a Compound.
  * @param {string} key - The key of the Tag to remove.
- * @returns {Tag} - The Tag removed, or null if not found.
+ * @returns {TagBase} - The Tag removed, or null if not found.
  */
 nbtlint.TagCompound.prototype.remove = function(key) {
 	if (key in this.map) {
@@ -727,7 +728,7 @@ nbtlint.TagCompound.prototype.remove = function(key) {
 };
 /**
  * Add a Tag to the end of a List.
- * @param {Tag} value - The Tag to add.
+ * @param {TagBase} value - The Tag to add.
  */
 nbtlint.TagList.prototype.push = function(value) {
 	this.type = this.type || value.constructor;
