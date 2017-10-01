@@ -4,6 +4,7 @@
 var root = this, previous_nbtlint = root.nbtlint;
 
 var nbtlint = {
+	TagBase: function() {},
 	quotedCharRE: /[^a-zA-Z0-9._+\-]/,
 	/**
 	 * An NBT String tag
@@ -31,7 +32,7 @@ var nbtlint = {
 	 * @abstract
 	 * @param {number} value - The tag's value
 	 */
-	TagNumber: function(value) {
+	TagNumberBase: function(value) {
 		if (value > this.maxValue) throw {error: "value_too_high", type: this.constructor, max: this.maxValue};
 		if (value < this.minValue) throw {error: "value_too_low",  type: this.constructor, min: this.minValue};
 		this.value = value;
@@ -42,7 +43,7 @@ var nbtlint = {
 	 * @param {number} value - The tag's value. Must be a whole number (not enforced).
 	 */
 	TagByte: function(value) {
-		nbtlint.TagNumber.call(this, value);
+		nbtlint.TagNumberBase.call(this, value);
 	},
 	/**
 	 * An NBT Short tag
@@ -50,7 +51,7 @@ var nbtlint = {
 	 * @param {number} value - The tag's value. Must be a whole number (not enforced).
 	 */
 	TagShort: function(value) {
-		nbtlint.TagNumber.call(this, value);
+		nbtlint.TagNumberBase.call(this, value);
 	},
 	/**
 	 * An NBT Integer tag
@@ -58,7 +59,7 @@ var nbtlint = {
 	 * @param {number} value - The tag's value. Must be a whole number (not enforced).
 	 */
 	TagInteger: function(value) {
-		nbtlint.TagNumber.call(this, value);
+		nbtlint.TagNumberBase.call(this, value);
 	},
 	/**
 	 * An NBT Long tag
@@ -315,7 +316,7 @@ var nbtlint = {
 		var l = value.list.length - 1,
 			str = "[" + value.arrayPrefix,
 			i;
-		if (value.list[0] instanceof nbtlint.TagNumber || value.type === nbtlint.TagString) {
+		if (value.list[0] instanceof nbtlint.TagNumberBase || value.type === nbtlint.TagString) {
 			// One line
 			if (value.arrayPrefix && !options.deflate) str += " ";
 			for (i = 0; i < l; ++i) {
@@ -589,57 +590,50 @@ var nbtlint = {
 		}
 	},
 };
-nbtlint.TagByte.prototype    = Object.create(nbtlint.TagNumber.prototype);
-nbtlint.TagShort.prototype   = Object.create(nbtlint.TagNumber.prototype);
-nbtlint.TagInteger.prototype = Object.create(nbtlint.TagNumber.prototype);
-nbtlint.TagLong.prototype    = Object.create(nbtlint.TagNumber.prototype);
-nbtlint.TagFloat.prototype   = Object.create(nbtlint.TagNumber.prototype);
-nbtlint.TagDouble.prototype  = Object.create(nbtlint.TagNumber.prototype);
-nbtlint.TagByte.prototype.constructor    = nbtlint.TagByte;
-nbtlint.TagShort.prototype.constructor   = nbtlint.TagShort;
-nbtlint.TagInteger.prototype.constructor = nbtlint.TagInteger;
-nbtlint.TagLong.prototype.constructor    = nbtlint.TagLong;
-nbtlint.TagFloat.prototype.constructor   = nbtlint.TagFloat;
-nbtlint.TagDouble.prototype.constructor  = nbtlint.TagDouble;
-nbtlint.TagArrayByte.prototype = Object.create(nbtlint.TagList.prototype);
-nbtlint.TagArrayInt.prototype  = Object.create(nbtlint.TagList.prototype);
-nbtlint.TagArrayLong.prototype = Object.create(nbtlint.TagList.prototype);
-nbtlint.TagArrayByte.prototype.constructor = nbtlint.TagArrayByte;
-nbtlint.TagArrayInt.prototype.constructor  = nbtlint.TagArrayInt;
-nbtlint.TagArrayLong.prototype.constructor = nbtlint.TagArrayLong;
-nbtlint.TagByte.prototype.suffix    = "b";
-nbtlint.TagShort.prototype.suffix   = "s";
-nbtlint.TagInteger.prototype.suffix = "";
-nbtlint.TagLong.prototype.suffix    = "l";
-nbtlint.TagFloat.prototype.suffix   = "f";
-nbtlint.TagDouble.prototype.suffix  = "d";
-nbtlint.TagList.prototype.arrayPrefix      = "";
-nbtlint.TagArrayByte.prototype.arrayPrefix = "B;";
-nbtlint.TagArrayInt.prototype.arrayPrefix  = "I;";
-nbtlint.TagArrayLong.prototype.arrayPrefix = "L;";
-nbtlint.TagByte.prototype.minValue    = -128
-nbtlint.TagByte.prototype.maxValue    =  127
-nbtlint.TagShort.prototype.minValue   = -32768
-nbtlint.TagShort.prototype.maxValue   =  32767
-nbtlint.TagInteger.prototype.minValue = -2147483648
-nbtlint.TagInteger.prototype.maxValue =  2147483647
-nbtlint.TagLong.prototype.minValue    ="-9223372036854775808"
-nbtlint.TagLong.prototype.maxValue    = "9223372036854775807"
-nbtlint.TagLong.prototype.minValueSignless = "9223372036854775808"
-if (typeof ArrayBuffer !== "undefined" && typeof Float32Array !== "undefined" && typeof Int32Array !== "undefined") {
-	// Calculate max float32 value accurately
-	var buf = new ArrayBuffer(4),
-		f32 = new Float32Array(buf),
-		i32 = new Int32Array(buf);
-	i32[0] = 0x7f7fffff;
-	nbtlint.TagFloat.prototype.minValue = -f32[0];
-	nbtlint.TagFloat.prototype.maxValue =  f32[0];
-} else {
-	nbtlint.TagFloat.prototype.minValue = -3.4028234663852886e+38;
-	nbtlint.TagFloat.prototype.maxValue =  3.4028234663852886e+38;
+
+function extend(parent, children) {
+	for (var i = children.length - 1; i >= 0; --i) {
+		children[i].prototype = Object.create(parent.prototype);
+		children[i].prototype.constructor = children[i];
+	}
 }
-nbtlint.TagDouble.prototype.minValue  = -Number.MAX_VALUE;
-nbtlint.TagDouble.prototype.maxValue  =  Number.MAX_VALUE;
+extend(nbtlint.TagBase, [
+	nbtlint.TagString,
+	nbtlint.TagCompound,
+	nbtlint.TagList,
+	nbtlint.TagNumberBase,
+]);
+extend(nbtlint.TagList, [
+	nbtlint.TagArrayByte,
+	nbtlint.TagArrayInt,
+	nbtlint.TagArrayLong,
+]);
+extend(nbtlint.TagNumberBase, [
+	nbtlint.TagByte,
+	nbtlint.TagShort,
+	nbtlint.TagInteger,
+	nbtlint.TagLong,
+	nbtlint.TagFloat,
+	nbtlint.TagDouble,
+]);
+
+nbtlint.byID = {
+	 1: nbtlint.TagByte,
+	 2: nbtlint.TagShort,
+	 3: nbtlint.TagInteger,
+	 4: nbtlint.TagLong,
+	 5: nbtlint.TagFloat,
+	 6: nbtlint.TagDouble,
+	 7: nbtlint.TagArrayByte,
+	 8: nbtlint.TagString,
+	 9: nbtlint.TagList,
+	10: nbtlint.TagCompound,
+	11: nbtlint.TagArrayInt,
+	12: nbtlint.TagArrayLong,
+};
+for (var id in nbtlint.byID) {
+	nbtlint.byID[id].prototype.tagID = id|0;
+}
 nbtlint.TagByte.prototype.tagName      = "TAG_Byte";
 nbtlint.TagShort.prototype.tagName     = "TAG_Short";
 nbtlint.TagInteger.prototype.tagName   = "TAG_Int";
@@ -652,6 +646,42 @@ nbtlint.TagCompound.prototype.tagName  = "TAG_Compound";
 nbtlint.TagArrayByte.prototype.tagName = "TAG_Byte_Array";
 nbtlint.TagArrayInt.prototype.tagName  = "TAG_Int_Array";
 nbtlint.TagArrayLong.prototype.tagName = "TAG_Long_Array";
+
+nbtlint.TagByte.prototype.suffix    = "b";
+nbtlint.TagShort.prototype.suffix   = "s";
+nbtlint.TagInteger.prototype.suffix = "";
+nbtlint.TagLong.prototype.suffix    = "l";
+nbtlint.TagFloat.prototype.suffix   = "f";
+nbtlint.TagDouble.prototype.suffix  = "d";
+nbtlint.TagList.prototype.arrayPrefix      = "";
+nbtlint.TagArrayByte.prototype.arrayPrefix = "B;";
+nbtlint.TagArrayInt.prototype.arrayPrefix  = "I;";
+nbtlint.TagArrayLong.prototype.arrayPrefix = "L;";
+
+nbtlint.TagByte.prototype.minValue    = -128
+nbtlint.TagByte.prototype.maxValue    =  127
+nbtlint.TagShort.prototype.minValue   = -32768
+nbtlint.TagShort.prototype.maxValue   =  32767
+nbtlint.TagInteger.prototype.minValue = -2147483648
+nbtlint.TagInteger.prototype.maxValue =  2147483647
+nbtlint.TagLong.prototype.minValue    ="-9223372036854775808"
+nbtlint.TagLong.prototype.maxValue    = "9223372036854775807"
+nbtlint.TagLong.prototype.minValueSignless = "9223372036854775808"
+nbtlint.TagDouble.prototype.minValue  = -Number.MAX_VALUE;
+nbtlint.TagDouble.prototype.maxValue  =  Number.MAX_VALUE;
+// Calculate max float32 value as accurately as possible
+if (typeof ArrayBuffer !== "undefined" && typeof Float32Array !== "undefined" && typeof Int32Array !== "undefined") {
+	var buf = new ArrayBuffer(4),
+		f32 = new Float32Array(buf),
+		i32 = new Int32Array(buf);
+	i32[0] = 0x7f7fffff;
+	nbtlint.TagFloat.prototype.minValue = -f32[0];
+	nbtlint.TagFloat.prototype.maxValue =  f32[0];
+} else {
+	nbtlint.TagFloat.prototype.minValue = -3.4028234663852886e+38;
+	nbtlint.TagFloat.prototype.maxValue =  3.4028234663852886e+38;
+}
+
 nbtlint.TagString.prototype.sortOrder    =  0;
 nbtlint.TagByte.prototype.sortOrder      =  1;
 nbtlint.TagShort.prototype.sortOrder     =  2;
