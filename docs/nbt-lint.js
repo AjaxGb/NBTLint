@@ -708,6 +708,24 @@ nbtlint.TagCompound.prototype.add = function(key, value) {
 	this.map[key] = value;
 };
 /**
+ * Remove a Tag from a Compound.
+ * @param {string} key - The key of the Tag to remove.
+ * @returns {Tag} - The Tag removed, or null if not found.
+ */
+nbtlint.TagCompound.prototype.remove = function(key) {
+	if (key in this.map) {
+		delete this.map[key];
+	} else {
+		return null;
+	}
+	for (var i = this.pairs.length - 1; i >= 0; --i) {
+		if (this.pairs[i][0].value === key) {
+			return this.pairs.splice(i, 1)[0][1];
+		}
+	}
+	throw {error: "inconsistent_state", message: "The internal state of this compound is borked. Did you mess with it?"};
+};
+/**
  * Add a Tag to the end of a List.
  * @param {Tag} value - The Tag to add.
  */
