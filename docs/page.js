@@ -54,7 +54,7 @@ function validateNBT() {
 		parsedData = NBT.parse(input.value);
 	} catch (e) {
 		console.log(e);
-		output.value = e.error;
+		output.value = e.message;
 		if (e.suggestion) {
 			output.value += "\n\n" + e.suggestion;
 		}
