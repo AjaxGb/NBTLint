@@ -1,5 +1,10 @@
 "use strict";
 
+/*!
+ * "nbt-lint" NBT Text Library v1.0.0 | MIT License
+ * https://github.com/AjaxGb/NBTLint
+ */
+
 (function() {
 var root = this, previous_nbtlint = root.nbtlint;
 
