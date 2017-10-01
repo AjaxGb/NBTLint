@@ -163,7 +163,7 @@ var NBT = {
 	/**
 	 * Convert an NBT.Tag to a textual representation
 	 * @param {NBT.Tag} value - The Tag to stringify.
-	 * @param {string} [space=\t] - The string to use for indentation.
+	 * @param {string} [space="\t"] - The string to use for indentation.
 	 *
 	 * @param {Object}   [options] - Extra options.
 	 * @param {Function} [options.sort]             - A sorting function to use on compound values. Recommended: NBT.compareAlpha, NBT.compareType, NBT.compareTypeAlpha.
@@ -180,6 +180,14 @@ var NBT = {
 		options = options || {};
 		options.capitalizeSuffix = options.capitalizeSuffix || {};
 		return NBT._printValue(value, space, "", options);
+	},
+	/**
+	 * Parse the textual representation of an NBT Tag.
+	 * @param {string} value - The string to parse.
+	 * @returns {NBT.Tag} - The parsed Tag.
+	 */
+	parse: function(value) {
+		return NBT._Parser.parse(value);
 	},
 	/**
 	 * Compare two key-value compound member pairs alphabetically.
@@ -324,14 +332,6 @@ var NBT = {
 		str += NBT._printValue(value.list[i], space, indent, options);
 		if (!options.deflate) str += "\n" + oldIndent;
 		return str + "]";
-	},
-	/**
-	 * Parse the textual representation of an NBT Tag.
-	 * @param {string} value - The string to parse.
-	 * @returns {NBT.Tag} - The parsed Tag.
-	 */
-	parse: function(value) {
-		return NBT._Parser.parse(value);
 	},
 	_Parser: {
 		/**
