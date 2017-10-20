@@ -408,7 +408,7 @@ var nbtlint = {
 			} else {
 				exception = "";
 			}
-			exception += this.string.substring(Math.max(0, end - 35), end);
+			exception += this.string.substring(Math.max(0, end - 35), end).replace(/\n/g, "\u21B5");
 			exception += "<--[HERE]";
 			exception = message + " at: " + exception;
 			if (suggestion) return {error: "parsing_error", message: exception, suggestion: suggestion};
