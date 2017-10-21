@@ -8,7 +8,7 @@ body {
 textarea {
 	display: block;
 }
-textarea[disabled] {
+textarea[readonly] {
 	color: #000;
 	background: rgb(245, 245, 238);
 }
