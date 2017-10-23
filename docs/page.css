@@ -59,6 +59,7 @@ textarea[readonly] {
 }
 #go {
 	margin: 5px 0;
+    display: block;
 }
 #controls {
 	display: block;

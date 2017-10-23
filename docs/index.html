@@ -5,15 +5,13 @@
 	<link rel="stylesheet" type="text/css" href="page.css">
 </head>
 <body class="tab-4">
-	<p>
-		<textarea id="in" cols="90" rows="10" placeholder="Unformatted NBT input"></textarea>
-	</p>
-	<p>
-		<input id="go" type="button" value="Validate and Format NBT">
-	</p>
-	<p>
-		<textarea id="out" cols="90" rows="30" placeholder="Formatted NBT output" readonly></textarea>
-	</p>
+	
+	<textarea id="in" cols="90" rows="10"
+		placeholder="Unformatted NBT input"></textarea>
+	<input id="go" type="button" value="Validate and Format NBT">
+	<textarea id="out" cols="90" rows="30"
+		placeholder="Formatted NBT output" readonly></textarea>
+	
 	<section id="controls">
 		<label>
 			<input id="deflate" type="checkbox"> Deflate (avoid whitespace)
@@ -43,7 +41,9 @@
 			<input id="capitalSuff" type="checkbox"> Capitalize other suffixes
 		</label>
 	</section>
+	
 	<a class="github-fork-ribbon right-bottom" href="https://github.com/AjaxGb/NBTLint" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+	
 	<script src="nbt-lint.js"></script>
 	<script src="page.js"></script>
 </body>
