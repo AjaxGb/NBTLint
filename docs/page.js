@@ -13,7 +13,8 @@ var input  = document.getElementById("in"),
 	    capitalL    : document.getElementById("capitalL"),
 	    capitalSuff : document.getElementById("capitalSuff"),
     },
-    parsedData;
+    parsedData,
+    notes = [];
 
 function updateSetting(item) {
 	updateOutput();
@@ -50,13 +51,34 @@ function loadSettings() {
 }
 loadSettings();
 
+function getNoteString() {
+	if (notes.length === 0) {
+		return "";
+	} else {
+		return notes.join("\n") + "\n\n";
+	}
+}
+
 function validateNBT() {
 	parsedData = undefined;
+	notes = [];
+	// If input starts with quotation mark, try unescaping JSON
+	var text = input.value;
+	while (/^\s*"/.test(text)) {
+		notes.push("NOTE: Input looks like a JSON string and will be unescaped.");
+		try {
+			text = JSON.parse(text);
+		} catch (e) {
+			output.value = getNoteString() + "ERROR while unescaping JSON: " + e.message;
+			return;
+		}
+		notes[notes.length - 1] = "NOTE: Input looked like a JSON string and was unescaped.";
+	}
 	try {
-		parsedData = nbtlint.parse(input.value);
+		parsedData = nbtlint.parse(text);
 	} catch (e) {
 		console.log(e);
-		output.value = e.message;
+		output.value = getNoteString() + e.message;
 		if (e.suggestion) {
 			output.value += "\n\n" + e.suggestion;
 		}
@@ -83,7 +105,8 @@ function updateOutput() {
 		} else if (settings.sortAlpha.checked) {
 			sort = nbtlint.compareAlpha;
 		}
-		output.value = nbtlint.stringify(parsedData,
+		output.value = getNoteString();
+		output.value += nbtlint.stringify(parsedData,
 			(settings.spaces.checked ? "        ".substr(0, +settings.indent.value) : "\t"),
 			{
 				sort: sort,
