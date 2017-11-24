@@ -310,7 +310,8 @@ var nbtlint = {
 		}
 		for (i = 0; i < l; ++i) {
 			if (!options.deflate) str += indent;
-			str += nbtlint._printString(list[i][0], options) + (options.deflate ? ":" : ": ");
+			str += nbtlint._printString(list[i][0], options);
+			str += (options.deflate || (options.nlBracket && !list[i][1].isPrimitive)) ? ":" : ": ";
 			str += nbtlint._printValue(list[i][1], space, indent, true, options);
 			if (i !== l - 1) {
 				str += options.deflate ? "," : ",\n";
