@@ -191,7 +191,7 @@ var nbtlint = {
 		if (space == null) space = "\t";
 		options = options || {};
 		options.capitalizeSuffix = options.capitalizeSuffix || {};
-		return nbtlint._printValue(value, space, "", options);
+		return nbtlint._printValue(value, space, "", false, options);
 	},
 	/**
 	 * Parse the textual representation of an NBT Tag.
@@ -261,7 +261,7 @@ var nbtlint = {
 		});
 		return indexed.map(function(e) { return e[0] });
 	},
-	_printValue: function(value, space, indent, options) {
+	_printValue: function(value, space, indent, hasName, options) {
 		switch (value.constructor) {
 		case nbtlint.TagString:
 			return nbtlint._printString(value, options);
@@ -273,12 +273,12 @@ var nbtlint = {
 		case nbtlint.TagDouble:
 			return nbtlint._printNumber(value, options);
 		case nbtlint.TagCompound:
-			return nbtlint._printCompound(value, space, indent, options);
+			return nbtlint._printCompound(value, space, indent, hasName, options);
 		case nbtlint.TagList:
 		case nbtlint.TagArrayByte:
 		case nbtlint.TagArrayInt:
 		case nbtlint.TagArrayLong:
-			return nbtlint._printList(value, space, indent, options);
+			return nbtlint._printList(value, space, indent, hasName, options);
 		}
 	},
 	_printString: function(str, options) {
@@ -294,7 +294,7 @@ var nbtlint = {
 		if (cap == null) cap = options.capitalizeSuffix["default"];
 		return number.value + (cap ? number.suffix.toUpperCase() : number.suffix);
 	},
-	_printCompound: function(value, space, indent, options) {
+	_printCompound: function(value, space, indent, hasName, options) {
 		if (value.pairs.length === 0) return "{}";
 		var oldIndent = indent,
 			indent = oldIndent + space,
@@ -302,46 +302,53 @@ var nbtlint = {
 			l = list.length - 1,
 			str = options.deflate ? "{" : "{\n",
 			i;
+		if (hasName && !options.deflate && options.nlBracket) {
+			str = "\n" + oldIndent + str;
+		}
 		if (options.sort) {
 			list = nbtlint.stableSorted(list, options.sort);
 		}
 		for (i = 0; i < l; ++i) {
 			if (!options.deflate) str += indent;
 			str += nbtlint._printString(list[i][0], options) + (options.deflate ? ":" : ": ");
-			str += nbtlint._printValue(list[i][1], space, indent, options);
+			str += nbtlint._printValue(list[i][1], space, indent, true, options);
 			str += options.deflate ? "," : ",\n";
 		}
 		if (!options.deflate) str += indent;
 		str += nbtlint._printString(list[i][0], options) + (options.deflate ? ":" : ": ");
-		str += nbtlint._printValue(list[i][1], space, indent, options);
+		str += nbtlint._printValue(list[i][1], space, indent, true, options);
 		if (!options.deflate) str += "\n" + oldIndent;
 		return str + "}";
 	},
-	_printList: function(value, space, indent, options) {
+	_printList: function(value, space, indent, hasName, options) {
 		if (value.list.length === 0) return "[" + value.arrayPrefix + "]";
-		var l = value.list.length - 1,
-			str = "[" + value.arrayPrefix,
-			i;
-		if (value.list[0] instanceof nbtlint.TagNumberBase || value.type === nbtlint.TagString) {
+		var isPrimitive = value.list[0].isPrimitive,
+		    l = value.list.length - 1,
+		    str = "[" + value.arrayPrefix,
+		    i;
+		if (!options.expandPrimitives && isPrimitive) {
 			// One line
 			if (value.arrayPrefix && !options.deflate) str += " ";
 			for (i = 0; i < l; ++i) {
-				str += nbtlint._printValue(value.list[i], "", "", options) +
+				str += nbtlint._printValue(value.list[i], "", "", false, options) +
 					(options.deflate ? "," : ", ");
 			}
-			return str + nbtlint._printValue(value.list[i], "", "", options) + "]";
+			return str + nbtlint._printValue(value.list[i], "", "", false, options) + "]";
 		}
 		// Multi-line
 		var oldIndent = indent,
 			indent = oldIndent + space;
-		if (!options.deflate) str += "\n";
+		if (!options.deflate) {
+			if (hasName && options.nlBracket) str = "\n" + oldIndent + str;
+			str += "\n";
+		}
 		for (i = 0; i < l; ++i) {
 			if (!options.deflate) str += indent;
-			str += nbtlint._printValue(value.list[i], space, indent, options);
+			str += nbtlint._printValue(value.list[i], space, indent, false, options);
 			str += options.deflate ? "," : ",\n";
 		}
 		if (!options.deflate) str += indent;
-		str += nbtlint._printValue(value.list[i], space, indent, options);
+		str += nbtlint._printValue(value.list[i], space, indent, false, options);
 		if (!options.deflate) str += "\n" + oldIndent;
 		return str + "]";
 	},
@@ -700,6 +707,11 @@ nbtlint.TagArrayByte.prototype.sortOrder =  8;
 nbtlint.TagArrayInt.prototype.sortOrder  =  9;
 nbtlint.TagArrayLong.prototype.sortOrder = 10;
 nbtlint.TagList.prototype.sortOrder      = 11;
+
+nbtlint.TagString.prototype.isPrimitive     = true;
+nbtlint.TagNumberBase.prototype.isPrimitive = true;
+nbtlint.TagCompound.prototype.isPrimitive   = false;
+nbtlint.TagList.prototype.isPrimitive       = false;
 
 /**
  * Add a Tag to a Compound.

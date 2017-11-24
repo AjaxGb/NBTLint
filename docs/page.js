@@ -3,15 +3,17 @@
 var input  = document.getElementById("in"),
     output = document.getElementById("out"),
     settings = {
-    	deflate     : document.getElementById("deflate"),
-	    spaces      : document.getElementById("spaces"),
-	    indent      : document.getElementById("indent"),
-	    sortType    : document.getElementById("sortType"),
-	    sortAlpha   : document.getElementById("sortAlpha"),
-	    quoteKeys   : document.getElementById("quoteKeys"),
-	    quoteStrings: document.getElementById("quoteStrings"),
-	    capitalL    : document.getElementById("capitalL"),
-	    capitalSuff : document.getElementById("capitalSuff"),
+    	deflate         : document.getElementById("deflate"),
+	    spaces          : document.getElementById("spaces"),
+	    indent          : document.getElementById("indent"),
+	    nlBracket       : document.getElementById("nlBracket"),
+	    collapsePrim    : document.getElementById("collapsePrim"),
+	    sortType        : document.getElementById("sortType"),
+	    sortAlpha       : document.getElementById("sortAlpha"),
+	    quoteKeys       : document.getElementById("quoteKeys"),
+	    quoteStrings    : document.getElementById("quoteStrings"),
+	    capitalL        : document.getElementById("capitalL"),
+	    capitalSuff     : document.getElementById("capitalSuff"),
     },
     parsedData,
     notes = [];
@@ -107,12 +109,16 @@ function updateOutput() {
 		}
 		output.value = getNoteString();
 		output.value += nbtlint.stringify(parsedData,
-			(settings.spaces.checked ? "        ".substr(0, +settings.indent.value) : "\t"),
+			(settings.spaces.checked
+				? "        ".substr(0, +settings.indent.value)
+				: "\t"),
 			{
-				sort: sort,
-				quoteKeys: settings.quoteKeys.checked,
-				unquoteStrings: !settings.quoteStrings.checked,
-				deflate: settings.deflate.checked,
+				nlBracket:        settings.nlBracket.checked,
+				expandPrimitives: !settings.collapsePrim.checked,
+				sort:             sort,
+				quoteKeys:        settings.quoteKeys.checked,
+				unquoteStrings:   !settings.quoteStrings.checked,
+				deflate:          settings.deflate.checked,
 				capitalizeSuffix: {
 					l: settings.capitalL.checked,
 					default: settings.capitalSuff.checked,
