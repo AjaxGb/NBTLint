@@ -177,8 +177,8 @@ var nbtlint = {
 	 * @param {string} [space="\t"] - The string to use for indentation.
 	 *
 	 * @param {Object}   [options] - Extra options.
-	 * @param {boolean}  [options.nlBracket=false]        - Place brackets on a new line.
-	 * @param {boolean}  [options.collapseBracket=false]  - Collapse adjacent brackets to the same line.
+	 * @param {boolean}  [options.nlBrackets=false]       - Place brackets on a new line.
+	 * @param {boolean}  [options.collapseBrackets=false] - Collapse adjacent brackets to the same line.
 	 * @param {boolean}  [options.expandPrimitives=false] - Put each item in a list of primitives on its own line, like other lists.
 	 * @param {boolean}  [options.trailingComma=false]    - Add a trailing comma immediately before newlines, when valid.
 	 * @param {Function} [options.sort=undefined]         - A sorting function to use on compound key-value pairs.
@@ -315,7 +315,7 @@ var nbtlint = {
 		if (options.deflate) {
 			str = "{";
 		} else if (hasName) {
-			if (options.nlBracket) {
+			if (options.nlBrackets) {
 				str = "\n" + oldIndent + "{\n";
 			} else {
 				str = " {\n";
@@ -355,7 +355,7 @@ var nbtlint = {
 			return str + "]";
 		}
 		// Multi-line
-		var collapseBr = !isPrimitive && options.collapseBracket,
+		var collapseBr = !isPrimitive && options.collapseBrackets,
 		    oldIndent = indent,
 		    indent = collapseBr ? oldIndent : oldIndent + space,
 		    open = "[" + value.arrayPrefix;
@@ -363,7 +363,7 @@ var nbtlint = {
 			str = open;
 		} else {
 			if (hasName) {
-				if (options.nlBracket) {
+				if (options.nlBrackets) {
 					str = "\n" + oldIndent + open;
 				} else {
 					str = " " + open;

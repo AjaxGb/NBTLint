@@ -115,8 +115,8 @@ function updateOutput() {
 				? "        ".substr(0, +settings.indent.value)
 				: "\t"),
 			{
-				nlBracket       : settings.nlBracket.checked,
-				collapseBracket : settings.collapseBracket.checked,
+				nlBrackets      : settings.nlBracket.checked,
+				collapseBrackets: settings.collapseBracket.checked,
 				expandPrimitives: !settings.collapsePrim.checked,
 				trailingComma   : settings.trailingComma.checked,
 				sort            : sort,
