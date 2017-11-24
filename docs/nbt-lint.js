@@ -262,16 +262,19 @@ var nbtlint = {
 		return indexed.map(function(e) { return e[0] });
 	},
 	_printValue: function(value, space, indent, hasName, options) {
+		var str;
 		switch (value.constructor) {
 		case nbtlint.TagString:
-			return nbtlint._printString(value, options);
+			str = nbtlint._printString(value, options);
+			break;
 		case nbtlint.TagByte:
 		case nbtlint.TagShort:
 		case nbtlint.TagInteger:
 		case nbtlint.TagLong:
 		case nbtlint.TagFloat:
 		case nbtlint.TagDouble:
-			return nbtlint._printNumber(value, options);
+			str = nbtlint._printNumber(value, options);
+			break;
 		case nbtlint.TagCompound:
 			return nbtlint._printCompound(value, space, indent, hasName, options);
 		case nbtlint.TagList:
@@ -280,6 +283,8 @@ var nbtlint = {
 		case nbtlint.TagArrayLong:
 			return nbtlint._printList(value, space, indent, hasName, options);
 		}
+		if (hasName && !options.deflate) str = " " + str;
+		return str;
 	},
 	_printString: function(str, options) {
 		if (str.needQuotes || (str.isKey ? options.quoteKeys : !options.unquoteStrings)) {
@@ -295,23 +300,31 @@ var nbtlint = {
 		return number.value + (cap ? number.suffix.toUpperCase() : number.suffix);
 	},
 	_printCompound: function(value, space, indent, hasName, options) {
-		if (value.pairs.length === 0) return "{}";
+		if (value.pairs.length === 0) {
+			return options.deflate ? "{}" : " {}";
+		}
 		var oldIndent = indent,
 			indent = oldIndent + space,
 			list = value.pairs,
 			l = list.length,
-			str = options.deflate ? "{" : "{\n",
-			i;
-		if (hasName && !options.deflate && options.nlBracket) {
-			str = "\n" + oldIndent + str;
+			i, str;
+		if (options.deflate) {
+			str = "{";
+		} else if (hasName) {
+			if (options.nlBracket) {
+				str = "\n" + oldIndent + "{\n";
+			} else {
+				str = " {\n";
+			}
+		} else {
+			str = "{\n";
 		}
 		if (options.sort) {
 			list = nbtlint.stableSorted(list, options.sort);
 		}
 		for (i = 0; i < l; ++i) {
 			if (!options.deflate) str += indent;
-			str += nbtlint._printString(list[i][0], options);
-			str += (options.deflate || (options.nlBracket && !list[i][1].isPrimitive)) ? ":" : ": ";
+			str += nbtlint._printString(list[i][0], options) + ":";
 			str += nbtlint._printValue(list[i][1], space, indent, true, options);
 			if (i !== l - 1) {
 				str += options.deflate ? "," : ",\n";
@@ -323,13 +336,13 @@ var nbtlint = {
 		return str + "}";
 	},
 	_printList: function(value, space, indent, hasName, options) {
-		if (value.list.length === 0) return "[" + value.arrayPrefix + "]";
+		if (value.list.length === 0) return (options.deflate ? "[" : " [") + value.arrayPrefix + "]";
 		var isPrimitive = value.list[0].isPrimitive,
 		    l = value.list.length,
-		    str = "[" + value.arrayPrefix,
-		    i;
+		    i, str;
 		if (!options.expandPrimitives && isPrimitive) {
 			// One line
+			str = (options.deflate ? "[" : " [") + value.arrayPrefix;
 			if (value.arrayPrefix && !options.deflate) str += " ";
 			for (i = 0; i < l; ++i) {
 				str += nbtlint._printValue(value.list[i], "", "", false, options)
@@ -339,10 +352,21 @@ var nbtlint = {
 		}
 		// Multi-line
 		var collapseBr = !isPrimitive && options.collapseBracket,
-			oldIndent = indent,
-			indent = collapseBr ? oldIndent : oldIndent + space;
-		if (!options.deflate) {
-			if (hasName && options.nlBracket) str = "\n" + oldIndent + str;
+		    oldIndent = indent,
+		    indent = collapseBr ? oldIndent : oldIndent + space,
+		    open = "[" + value.arrayPrefix;
+		if (options.deflate) {
+			str = open;
+		} else {
+			if (hasName) {
+				if (options.nlBracket) {
+					str = "\n" + oldIndent + open;
+				} else {
+					str = " " + open;
+				}
+			} else {
+				str = open;
+			}
 			if (!collapseBr) str += "\n";
 		}
 		for (i = 0; i < l; ++i) {
