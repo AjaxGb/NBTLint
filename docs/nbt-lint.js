@@ -312,8 +312,12 @@ var nbtlint = {
 			if (!options.deflate) str += indent;
 			str += nbtlint._printString(list[i][0], options) + (options.deflate ? ":" : ": ");
 			str += nbtlint._printValue(list[i][1], space, indent, true, options);
-			if (i !== l - 1) str += options.deflate ? "," : ",\n";
-			else if (!options.deflate) str += "\n" + oldIndent;
+			if (i !== l - 1) {
+				str += options.deflate ? "," : ",\n";
+			} else if (!options.deflate) {
+				if (options.trailingComma) str += ",";
+				str += "\n" + oldIndent;
+			}
 		}
 		return str + "}";
 	},
@@ -343,8 +347,12 @@ var nbtlint = {
 		for (i = 0; i < l; ++i) {
 			if (!(options.deflate || i === 0 && collapseBr)) str += indent;
 			str += nbtlint._printValue(value.list[i], space, indent, false, options);
-			if (i !== l - 1) str += options.deflate ? "," : ",\n";
-			else if (!(collapseBr || options.deflate)) str += "\n" + oldIndent;
+			if (i !== l - 1) {
+				str += options.deflate ? "," : ",\n";
+			} else if (!(collapseBr || options.deflate)) {
+				if (options.trailingComma) str += ",";
+				str += "\n" + oldIndent;
+			}
 		}
 		return str + "]";
 	},

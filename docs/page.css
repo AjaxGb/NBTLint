@@ -74,17 +74,19 @@ textarea[readonly] {
 input {
 	display: inline-block;
 }
-input[type="checkbox"] {
-    vertical-align: middle;
-    position: relative;
-    bottom: 1.5px;
-}
 #controls label {
 	display: block;
-	height: 1.5em;
+	padding: 0.2em 0;
+    padding-left: 55px;
+    position: relative;
 }
 #controls label input {
 	width: 50px;
+    position: absolute;
+    left: 0;
+}
+#controls label input[type="checkbox"] {
+    top: 6.2px;
 }
 #link {
 	margin-top: 10px;
