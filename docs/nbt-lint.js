@@ -301,7 +301,7 @@ var nbtlint = {
 	},
 	_printCompound: function(value, space, indent, hasName, options) {
 		if (value.pairs.length === 0) {
-			return options.deflate ? "{}" : " {}";
+			return (options.deflate || !hasName) ? "{}" : " {}";
 		}
 		var oldIndent = indent,
 			indent = oldIndent + space,
