@@ -299,7 +299,7 @@ var nbtlint = {
 		var oldIndent = indent,
 			indent = oldIndent + space,
 			list = value.pairs,
-			l = list.length - 1,
+			l = list.length,
 			str = options.deflate ? "{" : "{\n",
 			i;
 		if (hasName && !options.deflate && options.nlBracket) {
@@ -312,44 +312,40 @@ var nbtlint = {
 			if (!options.deflate) str += indent;
 			str += nbtlint._printString(list[i][0], options) + (options.deflate ? ":" : ": ");
 			str += nbtlint._printValue(list[i][1], space, indent, true, options);
-			str += options.deflate ? "," : ",\n";
+			if (i !== l - 1) str += options.deflate ? "," : ",\n";
+			else if (!options.deflate) str += "\n" + oldIndent;
 		}
-		if (!options.deflate) str += indent;
-		str += nbtlint._printString(list[i][0], options) + (options.deflate ? ":" : ": ");
-		str += nbtlint._printValue(list[i][1], space, indent, true, options);
-		if (!options.deflate) str += "\n" + oldIndent;
 		return str + "}";
 	},
 	_printList: function(value, space, indent, hasName, options) {
 		if (value.list.length === 0) return "[" + value.arrayPrefix + "]";
 		var isPrimitive = value.list[0].isPrimitive,
-		    l = value.list.length - 1,
+		    l = value.list.length,
 		    str = "[" + value.arrayPrefix,
 		    i;
 		if (!options.expandPrimitives && isPrimitive) {
 			// One line
 			if (value.arrayPrefix && !options.deflate) str += " ";
 			for (i = 0; i < l; ++i) {
-				str += nbtlint._printValue(value.list[i], "", "", false, options) +
-					(options.deflate ? "," : ", ");
+				str += nbtlint._printValue(value.list[i], "", "", false, options)
+				if (i !== l - 1) str += (options.deflate ? "," : ", ");
 			}
-			return str + nbtlint._printValue(value.list[i], "", "", false, options) + "]";
+			return str + "]";
 		}
 		// Multi-line
-		var oldIndent = indent,
-			indent = oldIndent + space;
+		var collapseBr = !isPrimitive && options.collapseBracket,
+			oldIndent = indent,
+			indent = collapseBr ? oldIndent : oldIndent + space;
 		if (!options.deflate) {
 			if (hasName && options.nlBracket) str = "\n" + oldIndent + str;
-			str += "\n";
+			if (!collapseBr) str += "\n";
 		}
 		for (i = 0; i < l; ++i) {
-			if (!options.deflate) str += indent;
+			if (!(options.deflate || i === 0 && collapseBr)) str += indent;
 			str += nbtlint._printValue(value.list[i], space, indent, false, options);
-			str += options.deflate ? "," : ",\n";
+			if (i !== l - 1) str += options.deflate ? "," : ",\n";
+			else if (!(collapseBr || options.deflate)) str += "\n" + oldIndent;
 		}
-		if (!options.deflate) str += indent;
-		str += nbtlint._printValue(value.list[i], space, indent, false, options);
-		if (!options.deflate) str += "\n" + oldIndent;
 		return str + "]";
 	},
 	_Parser: {
