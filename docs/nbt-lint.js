@@ -177,12 +177,16 @@ var nbtlint = {
 	 * @param {string} [space="\t"] - The string to use for indentation.
 	 *
 	 * @param {Object}   [options] - Extra options.
-	 * @param {Function} [options.sort]             - A sorting function to use on compound key-value pairs.
-	 *                                                Recommended: nbtlint.compareAlpha, nbtlint.compareType, nbtlint.compareTypeAlpha.
-	 * @param {boolean}  [options.quoteKeys]        - Force all keys to be quoted.
-	 * @param {boolean}  [options.unquoteStrings]   - Avoid quoting non-key strings when possible.
-	 * @param {boolean}  [options.deflate]          - Remove all unnecessary whitespace in the result.
-	 * @param {Object}   [options.capitalizeSuffix] - Which number suffixes to capitalize.
+	 * @param {boolean}  [options.nlBracket=false]        - Place brackets on a new line.
+	 * @param {boolean}  [options.collapseBracket=false]  - Collapse adjacent brackets to the same line.
+	 * @param {boolean}  [options.expandPrimitives=false] - Put each item in a list of primitives on its own line, like other lists.
+	 * @param {boolean}  [options.trailingComma=false]    - Add a trailing comma immediately before newlines, when valid.
+	 * @param {Function} [options.sort=undefined]         - A sorting function to use on compound key-value pairs.
+	 *                                                      Recommended: nbtlint.compareAlpha, nbtlint.compareType, nbtlint.compareTypeAlpha.
+	 * @param {boolean}  [options.quoteKeys=false]        - Force all keys to be quoted.
+	 * @param {boolean}  [options.unquoteStrings=false]   - Avoid quoting non-key strings when possible.
+	 * @param {boolean}  [options.deflate=false]          - Remove all unnecessary whitespace in the result.
+	 * @param {Object}   [options.capitalizeSuffix]       - Which number suffixes to capitalize (keys: 'l', 'b', '', etc.).
 	 * @param {TagBase}  [options.capitalizeSuffix.default=false] - Whether to capitalize unmentioned suffixes.
 	 *
 	 * @returns {string}
