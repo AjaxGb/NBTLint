@@ -1,5 +1,5 @@
 # NBTLint
-Quickly and easily validate the textual NBT format used in Minecraft commands.
+Quickly and easily validate the stringified NBT format (SNBT) used in Minecraft commands.
 Available on the web at https://ajaxgb.github.io/NBTLint/
 
 [Also available as a JavaScript library.](https://github.com/AjaxGb/NBTLint/blob/master/docs/nbt-lint.js)
