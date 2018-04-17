@@ -1,6 +1,6 @@
 # NBTLint
 Quickly and easily validate the stringified NBT format (SNBT) used in Minecraft commands.
-Available on the web at https://ajaxgb.github.io/NBTLint/
+Available on the web at http://www.soltoder.com/NBTLint/
 
 [Also available as a JavaScript library.](https://github.com/AjaxGb/NBTLint/blob/master/docs/nbt-lint.js)
 
