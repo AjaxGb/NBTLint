@@ -491,7 +491,8 @@ var nbtlint = {
 				return this.peek(1) !== '"' && this.peek(2) === ";" ?
 					this.readArrayTag() : this.readListTag();
 			case '"':
-				return new nbtlint.TagString(this.readQuotedString(), false);
+			case "'":
+				return new nbtlint.TagString(this.readQuotedString(next), false);
 			}
 			var s = this.readUnquotedString(), num;
 			if (!s) throw this.exception("Expected a value");
@@ -577,21 +578,21 @@ var nbtlint = {
 			this.cursor += string.length;
 			return string;
 		},
-		readQuotedString: function() {
+		readQuotedString: function(quote) {
 			var startChunkIndex = ++this.cursor,
 				string = "",
 				inEscape = false;
 			while (this.canRead()) {
 				var c = this.pop();
 				if (inEscape) {
-					if (c !== "\\" && c !== '"') throw this.exception("Invalid escape of '" + c + "'");
+					if (c !== "\\" && c !== quote) throw this.exception("Invalid escape of " + c);
 					string += c;
 					startChunkIndex = this.cursor;
 					inEscape = false;
 				} else if (c === "\\") {
 					inEscape = true;
 					string += this.string.substring(startChunkIndex, this.cursor - 1);
-				} else if (c == '"') {
+				} else if (c == quote) {
 					return string + this.string.substring(startChunkIndex, this.cursor - 1);
 				}
 			}
