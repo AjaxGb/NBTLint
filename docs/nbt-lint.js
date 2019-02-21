@@ -465,7 +465,12 @@ var nbtlint = {
 				if (!this.canRead()) {
 					throw this.exception("Expected a key");
 				} else {
-					key = this.peek() === '"' ? this.readQuotedString() : this.readUnquotedString();
+					var quote = this.peek();
+					if (quote === '"' || quote === "'"){
+						key = this.readQuotedString();
+					} else {
+						key = this.readUnquotedString();
+					}
 				}
 				if (!key) throw this.exception("Expected non-empty key");
 				if (key in compound.map) throw this.exception("Duplicate key");
@@ -492,7 +497,7 @@ var nbtlint = {
 					this.readArrayTag() : this.readListTag();
 			case '"':
 			case "'":
-				return new nbtlint.TagString(this.readQuotedString(next), false);
+				return new nbtlint.TagString(this.readQuotedString(), false);
 			}
 			var s = this.readUnquotedString(), num;
 			if (!s) throw this.exception("Expected a value");
@@ -578,8 +583,9 @@ var nbtlint = {
 			this.cursor += string.length;
 			return string;
 		},
-		readQuotedString: function(quote) {
-			var startChunkIndex = ++this.cursor,
+		readQuotedString: function() {
+			var quote = this.pop(),
+				startChunkIndex = this.cursor,
 				string = "",
 				inEscape = false;
 			while (this.canRead()) {
