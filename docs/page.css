@@ -77,11 +77,12 @@ input {
 #controls label {
 	display: block;
 	padding: 0.2em 0;
-	padding-left: 55px;
+	padding-left: 75px;
 	position: relative;
 }
-#controls label input {
-	width: 50px;
+#controls label input,
+#controls label select {
+	width: 70px;
 	position: absolute;
 	left: 0;
 }

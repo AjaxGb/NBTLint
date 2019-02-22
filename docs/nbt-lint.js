@@ -1,11 +1,11 @@
-"use strict";
-
 /*!
- * "nbt-lint" NBT Text Library v1.0.0 | MIT License
+ * "nbt-lint" NBT Text Library v1.1.0 | MIT License
  * https://github.com/AjaxGb/NBTLint
  */
 
 (function() {
+"use strict";
+
 var root = this, previous_nbtlint = root.nbtlint;
 
 var nbtlint = {
@@ -21,14 +21,15 @@ var nbtlint = {
 		this.value = value;
 		this.isKey = !!isKey;
 		this.needQuotes = nbtlint.quotedCharRE.test(value);
+		
 		if (!this.needQuotes && !isKey) {
-			var num;
 			try {
-				num = nbtlint._Parser.parseNumber(value);
-			} catch (e) {
-				return;
+				if (nbtlint._Parser.parseNumber(value)) {
+					this.needQuotes = true;
+				}
+			} catch {
+				// Ignore
 			}
-			if (num) this.needQuotes = true;
 		}
 	},
 	/**
@@ -177,16 +178,18 @@ var nbtlint = {
 	 * @param {string} [space="\t"] - The string to use for indentation.
 	 *
 	 * @param {Object}   [options] - Extra options.
-	 * @param {boolean}  [options.nlBrackets=false]       - Place brackets on a new line.
-	 * @param {boolean}  [options.collapseBrackets=false] - Collapse adjacent brackets to the same line.
-	 * @param {boolean}  [options.expandPrimitives=false] - Put each item in a list of primitives on its own line, like other lists.
-	 * @param {boolean}  [options.trailingComma=false]    - Add a trailing comma immediately before newlines, when valid.
-	 * @param {Function} [options.sort=undefined]         - A sorting function to use on compound key-value pairs.
-	 *                                                      Recommended: nbtlint.compareAlpha, nbtlint.compareType, nbtlint.compareTypeAlpha.
-	 * @param {boolean}  [options.quoteKeys=false]        - Force all keys to be quoted.
-	 * @param {boolean}  [options.unquoteStrings=false]   - Avoid quoting non-key strings when possible.
-	 * @param {boolean}  [options.deflate=false]          - Remove all unnecessary whitespace in the result.
-	 * @param {Object}   [options.capitalizeSuffix]       - Which number suffixes to capitalize (keys: 'l', 'b', '', etc.).
+	 * @param {boolean}  [options.nlBrackets=false]           - Place brackets on a new line.
+	 * @param {boolean}  [options.collapseBrackets=false]     - Collapse adjacent brackets to the same line.
+	 * @param {boolean}  [options.expandPrimitives=false]     - Put each item in a list of primitives on its own line, like other lists.
+	 * @param {boolean}  [options.trailingComma=false]        - Add a trailing comma immediately before newlines, when valid.
+	 * @param {Function} [options.sort=undefined]             - A sorting function to use on compound key-value pairs.
+	 *                                                          Recommended: nbtlint.compareAlpha, nbtlint.compareType, nbtlint.compareTypeAlpha.
+	 * @param {boolean}  [options.quoteKeys=false]            - Force all keys to be quoted.
+	 * @param {boolean}  [options.unquoteStrings=false]       - Avoid quoting non-key strings when possible.
+	 * @param {"onlyDouble"|"preferDouble"|"preferSingle"|"onlySingle"}
+	 *                   [options.quoteChoice="preferDouble"] - Avoid quoting non-key strings when possible.
+	 * @param {boolean}  [options.deflate=false]              - Remove all unnecessary whitespace in the result.
+	 * @param {Object}   [options.capitalizeSuffix]           - Which number suffixes to capitalize (keys: 'l', 'b', '', etc.).
 	 * @param {TagBase}  [options.capitalizeSuffix.default=false] - Whether to capitalize unmentioned suffixes.
 	 *
 	 * @returns {string}
@@ -292,9 +295,30 @@ var nbtlint = {
 	},
 	_printString: function(str, options) {
 		if (str.needQuotes || (str.isKey ? options.quoteKeys : !options.unquoteStrings)) {
-			return '"' + str.value
-				.replace(/\\/g, '\\\\')
-				.replace(/"/g, '\\"') + '"';
+			
+			var quote;
+			
+			if (options.quoteChoice === "onlyDouble") {
+				quote = '"';
+			} else if (options.quoteChoice === "onlySingle") {
+				quote = "'";
+			} else {
+				var compare = str.value.split('"').length - str.value.split("'").length;
+				// More " -> positive, more ' -> negative, equal -> 0.
+				if (compare < 0) {
+					quote = '"';
+				} else if (compare > 0) {
+					quote = "'";
+				} else {
+					quote = (options.quoteChoice === "preferSingle") ? "'" : '"';
+				}
+			}
+			
+			return quote
+				+ str.value
+					.replace(/\\/g, "\\\\")
+					.replace((quote === '"') ? /"/g : /'/g, '\\$&')
+				+ quote;
 		}
 		return str.value;
 	},
