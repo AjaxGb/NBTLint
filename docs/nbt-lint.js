@@ -47,9 +47,11 @@ var nbtlint = {
 	 * An NBT Byte tag
 	 * @constructor
 	 * @param {number} value - The tag's value. Must be a whole number (not enforced).
+	 * @param {boolean} [preferBool=false] - Whether the byte prefers to be stringified as a boolean.
 	 */
-	TagByte: function(value) {
+	TagByte: function(value, preferBool) {
 		nbtlint.TagNumberBase.call(this, value);
+		this.preferBool = !!preferBool;
 	},
 	/**
 	 * An NBT Short tag
@@ -187,7 +189,9 @@ var nbtlint = {
 	 * @param {boolean}  [options.quoteKeys=false]            - Force all keys to be quoted.
 	 * @param {boolean}  [options.unquoteStrings=false]       - Avoid quoting non-key strings when possible.
 	 * @param {"onlyDouble"|"preferDouble"|"preferSingle"|"onlySingle"}
-	 *                   [options.quoteChoice="preferDouble"] - Avoid quoting non-key strings when possible.
+	 *                   [options.quoteChoice="preferDouble"] - How to choose between single and double quotes.
+	 * @param {"always"|"never"|"preference"}
+	 *                   [options.boolChoice="preference"]    - How to choose between boolean and numeric bytes.
 	 * @param {boolean}  [options.deflate=false]              - Remove all unnecessary whitespace in the result.
 	 * @param {Object}   [options.capitalizeSuffix]           - Which number suffixes to capitalize (keys: 'l', 'b', '', etc.).
 	 * @param {TagBase}  [options.capitalizeSuffix.default=false] - Whether to capitalize unmentioned suffixes.
@@ -275,6 +279,13 @@ var nbtlint = {
 			str = nbtlint._printString(value, options);
 			break;
 		case nbtlint.TagByte:
+			if ((value.value === 0 || value.value === 1)
+			 && (options.boolChoice !== "never")
+			 && (options.boolChoice === "always" || value.preferBool)) {
+				str = (value.value) ? "true" : "false";
+				break;
+			}
+			// fall through
 		case nbtlint.TagShort:
 		case nbtlint.TagInteger:
 		case nbtlint.TagLong:
@@ -640,7 +651,7 @@ var nbtlint = {
 				return new nbtlint.TagFloat(+s.substr(0, s.length - 1));
 			}
 			if (this.byteRE.test(s)) {
-				return new nbtlint.TagByte(+s.substring(0, s.length - 1));
+				return new nbtlint.TagByte(+s.substring(0, s.length - 1), false);
 			}
 			if (this.longRE.test(s)) {
 				// As a string
@@ -659,10 +670,10 @@ var nbtlint = {
 				return new nbtlint.TagDouble(+s);
 			}
 			if (s.toLowerCase() === "true") {
-				return new nbtlint.TagByte(1);
+				return new nbtlint.TagByte(1, true);
 			}
 			if (s.toLowerCase() === "false") {
-				return new nbtlint.TagByte(0);
+				return new nbtlint.TagByte(0, true);
 			}
 		}
 	},
