@@ -830,8 +830,8 @@ nbtlint.noConflict = function() {
 	return nbtlint;
 }
 
-if(typeof exports !== 'undefined') {
-	if(typeof module !== 'undefined' && module.exports) {
+if(typeof exports !== "undefined") {
+	if(typeof module !== "undefined" && module.exports) {
 		exports = module.exports = nbtlint;
 	}
 	exports.nbtlint = nbtlint;
