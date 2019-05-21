@@ -1,5 +1,5 @@
 /*!
- * "nbt-lint" NBT Text Library v1.1.0 | MIT License
+ * "nbt-lint" NBT Text Library v1.2.1 | MIT License
  * https://github.com/AjaxGb/NBTLint
  */
 
@@ -239,8 +239,8 @@ var nbtlint = {
 		if (orderA < orderB) return -1;
 		if (orderA > orderB) return  1;
 		if (a[1].constructor !== nbtlint.TagList) return 0;
-		orderA = a[1].type.prototype.sortOrder;
-		orderB = b[1].type.prototype.sortOrder;
+		orderA = a[1].type ? a[1].type.prototype.sortOrder : 12;
+		orderB = b[1].type ? b[1].type.prototype.sortOrder : 12;
 		if (orderA < orderB) return -1;
 		if (orderA > orderB) return  1;
 		return 0;
