@@ -12,6 +12,16 @@ textarea[readonly] {
 	color: #000;
 	background: rgb(245, 245, 238);
 }
+.js-error {
+	display: none;
+	margin-bottom: 10px;
+	padding: 10px 15px;
+	border-radius: 5px;
+	background-color: #ff101040;
+}
+.show-js-error .js-error {
+	display: inline-block;
+}
 .tab-8 {
 	-moz-tab-size: 8;
 	-o-tab-size:   8;
@@ -57,11 +67,15 @@ textarea[readonly] {
 	-o-tab-size:   0;
 	tab-size:      0;
 }
+#all-controls {
+	padding: 0;
+	border: none;
+}
 #go {
 	margin: 5px 0;
 	display: block;
 }
-#controls {
+.controls {
 	display: block;
 	position: absolute;
 	top: 10px;
@@ -74,19 +88,19 @@ textarea[readonly] {
 input {
 	display: inline-block;
 }
-#controls label {
+.controls label {
 	display: block;
 	padding: 0.2em 0;
 	padding-left: 75px;
 	position: relative;
 }
-#controls label input,
-#controls label select {
+.controls label input,
+.controls label select {
 	width: 70px;
 	position: absolute;
 	left: 0;
 }
-#controls label input[type="checkbox"] {
+.controls label input[type="checkbox"] {
 	top: 6.2px;
 }
 #link {

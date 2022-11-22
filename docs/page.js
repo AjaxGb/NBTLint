@@ -1,26 +1,29 @@
-"use strict";
+import * as NBT from './nbt-lint.js';
 
-var input  = document.getElementById("in"),
-    output = document.getElementById("out"),
-    settings = {
-    	deflate        : document.getElementById("deflate"),
-    	spaces         : document.getElementById("spaces"),
-    	indent         : document.getElementById("indent"),
-    	nlBracket      : document.getElementById("nlBracket"),
-    	collapseBracket: document.getElementById("collapseBracket"),
-    	collapsePrim   : document.getElementById("collapsePrim"),
-    	trailingComma  : document.getElementById("trailingComma"),
-    	sortType       : document.getElementById("sortType"),
-    	sortAlpha      : document.getElementById("sortAlpha"),
-    	quoteKeys      : document.getElementById("quoteKeys"),
-    	quoteStrings   : document.getElementById("quoteStrings"),
-    	quoteChoice    : document.getElementById("quoteChoice"),
-    	boolChoice     : document.getElementById("boolChoice"),
-    	capitalL       : document.getElementById("capitalL"),
-    	capitalSuff    : document.getElementById("capitalSuff"),
-    },
-    parsedData,
-    notes = [];
+window.NBT = NBT;
+
+const input  = document.getElementById("in");
+const output = document.getElementById("out");
+const allControls = document.getElementById('all-controls');
+const settings = {
+	deflate        : document.getElementById("deflate"),
+	spaces         : document.getElementById("spaces"),
+	indent         : document.getElementById("indent"),
+	nlBracket      : document.getElementById("nlBracket"),
+	collapseBracket: document.getElementById("collapseBracket"),
+	collapsePrim   : document.getElementById("collapsePrim"),
+	trailingComma  : document.getElementById("trailingComma"),
+	sortType       : document.getElementById("sortType"),
+	sortAlpha      : document.getElementById("sortAlpha"),
+	quoteKeys      : document.getElementById("quoteKeys"),
+	quoteStrings   : document.getElementById("quoteStrings"),
+	quoteChoice    : document.getElementById("quoteChoice"),
+	boolChoice     : document.getElementById("boolChoice"),
+	capitalL       : document.getElementById("capitalL"),
+	capitalSuff    : document.getElementById("capitalSuff"),
+};
+let parsedData = undefined;
+let notes = [];
 
 function updateSetting(item) {
 	updateOutput();
@@ -56,6 +59,7 @@ function loadSettings() {
 	}
 }
 loadSettings();
+allControls.disabled = false;
 
 function getNoteString() {
 	if (notes.length === 0) {

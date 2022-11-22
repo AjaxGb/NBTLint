@@ -4,6 +4,7 @@
 	<title>SNBT Lint</title>
 	<link rel="stylesheet" type="text/css" href="page.css">
 	<link rel="shortcut icon" href="favicon.png" type="image/png" sizes="16x16">
+	<script type="module" src="page.js?v=1"></script>
 	
 	<!-- Google Tag Manager -->
 	<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -14,11 +15,23 @@
 	<!-- End Google Tag Manager -->
 </head>
 <body class="tab-4">
+<fieldset id="all-controls" disabled>
+	<script nomodule>
+		document.body.className += ' show-js-error';
+	</script>
+	<div class="js-error">
+		Your browser is out of date and does not support modern JS features.
+		<br>
+		This website will not function correctly without them.
+		<br>
+		Please upgrade. See <a href="https://caniuse.com/es6-module">https://caniuse.com/es6-module</a>.
+	</div>
+	
 	<textarea id="in" cols="90" rows="10" placeholder="Unformatted SNBT input"></textarea>
 	<input id="go" type="button" value="Validate and Format SNBT">
 	<textarea id="out" cols="90" rows="30" placeholder="Formatted SNBT output" readonly></textarea>
 	
-	<section id="controls">
+	<section class="controls">
 		<label>
 			<input id="deflate" type="checkbox">Deflate (avoid whitespace)
 		</label>
@@ -76,8 +89,6 @@
 	</section>
 	
 	<a class="github-fork-ribbon right-bottom" href="https://github.com/AjaxGb/NBTLint" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
-	
-	<script src="nbt-lint.js?v=1.2.1"></script>
-	<script src="page.js"></script>
+</fieldset>
 </body>
 </html>
