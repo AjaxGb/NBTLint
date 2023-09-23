@@ -380,7 +380,7 @@ var nbtlint = {
 		return str + "}";
 	},
 	_printList: function(value, space, indent, hasName, options) {
-		var spaceBefore = hasName && !deflate;
+		var spaceBefore = hasName && !options.deflate;
 		if (value.list.length === 0) return (spaceBefore ? " [" : "[") + value.arrayPrefix + "]";
 		var isPrimitive = value.list[0].isPrimitive,
 		    l = value.list.length,
