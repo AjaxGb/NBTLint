@@ -1,5 +1,5 @@
 /*!
- * "nbt-lint" NBT Text Library v1.2.1 | MIT License
+ * "nbt-lint" NBT Text Library v1.3 | MIT License
  * https://github.com/AjaxGb/NBTLint
  */
 
@@ -183,6 +183,7 @@ var nbtlint = {
 	 * @param {boolean}  [options.nlBrackets=false]           - Place brackets on a new line.
 	 * @param {boolean}  [options.collapseBrackets=false]     - Collapse adjacent brackets to the same line.
 	 * @param {boolean}  [options.expandPrimitives=false]     - Put each item in a list of primitives on its own line, like other lists.
+	 * @param {boolean}  [options.escapeNewlines=false]       - Add a backslash before every newline, making multiline SNBT safe for .mcfunctions.
 	 * @param {boolean}  [options.trailingComma=false]        - Add a trailing comma immediately before newlines, when valid.
 	 * @param {Function} [options.sort=undefined]             - A sorting function to use on compound key-value pairs.
 	 *                                                          Recommended: nbtlint.compareAlpha, nbtlint.compareType, nbtlint.compareTypeAlpha.
@@ -202,7 +203,11 @@ var nbtlint = {
 		if (space == null) space = "\t";
 		options = options || {};
 		options.capitalizeSuffix = options.capitalizeSuffix || {};
-		return nbtlint._printValue(value, space, "", false, options);
+		var snbt = nbtlint._printValue(value, space, "", false, options);
+		if (options.escapeNewlines) {
+			snbt = snbt.replace(/\n/g, '\\\n');
+		}
+		return snbt;
 	},
 	/**
 	 * Parse the textual representation of an NBT Tag.
@@ -375,13 +380,14 @@ var nbtlint = {
 		return str + "}";
 	},
 	_printList: function(value, space, indent, hasName, options) {
-		if (value.list.length === 0) return (options.deflate ? "[" : " [") + value.arrayPrefix + "]";
+		var spaceBefore = hasName && !deflate;
+		if (value.list.length === 0) return (spaceBefore ? " [" : "[") + value.arrayPrefix + "]";
 		var isPrimitive = value.list[0].isPrimitive,
 		    l = value.list.length,
 		    i, str;
 		if (!options.expandPrimitives && isPrimitive) {
 			// One line
-			str = (options.deflate ? "[" : " [") + value.arrayPrefix;
+			str = (spaceBefore ? " [" : "[") + value.arrayPrefix;
 			if (value.arrayPrefix && !options.deflate) str += " ";
 			for (i = 0; i < l; ++i) {
 				str += nbtlint._printValue(value.list[i], "", "", false, options)
@@ -423,14 +429,14 @@ var nbtlint = {
 	_Parser: {
 		/**
 		 * Parse the textual representation of an NBT Tag.
-		 * @param {string} value - The string to parse.
+		 * @param {string} text - The string to parse.
 		 * @returns {TagBase} - The parsed Tag.
 		 */
-		parse: function(value) {
-			this.string = value;
+		parse: function(text) {
+			this.string = text.replace(/\\\s*\n\s*/g, '');
 			this.cursor = 0;
 			
-			var compound = this.readCompound();
+			var value = this.readValue();
 			this.skipWhitespace();
 			
 			if (this.canRead()) {
@@ -438,7 +444,7 @@ var nbtlint = {
 				throw this.exception("Trailing data found");
 			}
 			
-			return compound;
+			return value;
 		},
 		canRead: function() {
 			return this.cursor < this.string.length;
