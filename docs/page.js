@@ -69,20 +69,8 @@ function getNoteString() {
 function validateNBT() {
 	parsedData = undefined;
 	notes = [];
-	// If input starts with quotation mark, try unescaping JSON
-	var text = input.value;
-	while (/^\s*"/.test(text)) {
-		notes.push("NOTE: Input looks like a JSON string and will be unescaped.");
-		try {
-			text = JSON.parse(text);
-		} catch (e) {
-			output.value = getNoteString() + "ERROR while unescaping JSON: " + e.message;
-			return;
-		}
-		notes[notes.length - 1] = "NOTE: Input looked like a JSON string and was unescaped.";
-	}
 	try {
-		parsedData = nbtlint.parse(text);
+		parsedData = nbtlint.parse(input.value);
 	} catch (e) {
 		console.log(e);
 		output.value = getNoteString() + e.message;
