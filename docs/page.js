@@ -22,11 +22,20 @@ var input  = document.getElementById("in"),
     	capitalSuff    : document.getElementById("capitalSuff"),
     },
     parsedData,
+	parseError,
     notes = [];
 
+settings.mixedLists.affectsParse = true;
+
 function updateSetting(item) {
-	updateOutput();
 	item = item instanceof Event ? this : item || this;
+	if (item.affectsParse) {
+		if (parsedData || parseError) {
+			validateNBT();
+		}
+	} else {
+		updateOutput();
+	}
 	localStorage.setItem(item.id, item.type === "checkbox" ? item.checked : item.value);
 }
 
@@ -68,7 +77,7 @@ function getNoteString() {
 }
 
 function validateNBT() {
-	parsedData = undefined;
+	parsedData = parseError = undefined;
 	notes = [];
 	try {
 		parsedData = nbtlint.parse(input.value, {
@@ -76,11 +85,7 @@ function validateNBT() {
 		});
 	} catch (e) {
 		console.log(e);
-		output.value = getNoteString() + e.message;
-		if (e.suggestion) {
-			output.value += "\n\n" + e.suggestion;
-		}
-		return;
+		parseError = e;
 	}
 	updateOutput();
 }
@@ -94,7 +99,13 @@ document.getElementById("go").onclick = function() {
 };
 
 function updateOutput() {
-	if (parsedData) {
+	output.value = getNoteString();
+	if (parseError) {
+		output.value += parseError.message;
+		if (parseError.suggestion) {
+			output.value += "\n\n" + parseError.suggestion;
+		}
+	} else if (parsedData) {
 		var sort = false;
 		if (settings.sortAlpha.checked && settings.sortType.checked) {
 			sort = nbtlint.compareTypeAlpha;
@@ -103,7 +114,6 @@ function updateOutput() {
 		} else if (settings.sortAlpha.checked) {
 			sort = nbtlint.compareAlpha;
 		}
-		output.value = getNoteString();
 		output.value += nbtlint.stringify(parsedData,
 			(settings.spaces.checked
 				? "        ".substring(0, +settings.indent.value)
