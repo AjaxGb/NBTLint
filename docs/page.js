@@ -10,6 +10,7 @@ var input  = document.getElementById("in"),
     	collapseBracket: document.getElementById("collapseBracket"),
     	collapsePrim   : document.getElementById("collapsePrim"),
 		escapeNewlines : document.getElementById("escapeNewlines"),
+		mixedLists     : document.getElementById("mixedLists"),
     	trailingComma  : document.getElementById("trailingComma"),
     	sortType       : document.getElementById("sortType"),
     	sortAlpha      : document.getElementById("sortAlpha"),
@@ -44,7 +45,7 @@ indent.oninput = function() {
 function loadSettings() {
 	for (var name in settings) {
 		var el = settings[name], val = localStorage.getItem(el.id);
-		
+
 		if (val !== null) {
 			if (el.type === "checkbox") {
 				el.checked = (val !== "false");
@@ -70,7 +71,9 @@ function validateNBT() {
 	parsedData = undefined;
 	notes = [];
 	try {
-		parsedData = nbtlint.parse(input.value);
+		parsedData = nbtlint.parse(input.value, {
+			mixedLists: settings.mixedLists.checked,
+		});
 	} catch (e) {
 		console.log(e);
 		output.value = getNoteString() + e.message;
@@ -103,7 +106,7 @@ function updateOutput() {
 		output.value = getNoteString();
 		output.value += nbtlint.stringify(parsedData,
 			(settings.spaces.checked
-				? "        ".substr(0, +settings.indent.value)
+				? "        ".substring(0, +settings.indent.value)
 				: "\t"),
 			{
 				nlBrackets      : settings.nlBracket.checked,
@@ -127,13 +130,13 @@ function updateOutput() {
 
 function loadLink() {
 	var linkInput = decodeURIComponent(location.hash.substr(1));
-	
+
 	if (linkInput === input.value) {
 		return;
 	} else {
 		input.value = linkInput;
 	}
-	
+
 	if (input.value) {
 		validateNBT();
 	} else {

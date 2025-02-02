@@ -1,5 +1,5 @@
 /*!
- * "nbt-lint" NBT Text Library v1.3 | MIT License
+ * "nbt-lint" NBT Text Library v1.4 | MIT License
  * https://github.com/AjaxGb/NBTLint
  */
 
@@ -21,7 +21,7 @@ var nbtlint = {
 		this.value = value;
 		this.isKey = !!isKey;
 		this.needQuotes = nbtlint.quotedCharRE.test(value);
-		
+
 		if (!this.needQuotes && !isKey) {
 			try {
 				if (nbtlint._Parser.parseNumber(value)) {
@@ -79,7 +79,7 @@ var nbtlint = {
 		if (sign === "+" || sign === "-") {
 			value = value.substr(1);
 		}
-		
+
 		if (value === "0") return this.value = 0;
 		if (!/^[1-9][0-9]*$/.test(value)) throw {error: "invalid_format", message: "Badly formatted TagLong string"};
 		if (value.length > 19) {
@@ -90,7 +90,7 @@ var nbtlint = {
 			if (sign === "-") return this.value = sign + value;
 			return this.value = value;
 		}
-		
+
 		var limit = (sign === "-") ? this.minValueSignless : this.maxValue;
 		for (var i = 0; i < limit.length; ++i) {
 			if (value[i] !== limit[i]) {
@@ -99,7 +99,7 @@ var nbtlint = {
 				throw {error: "value_too_high", type: nbtlint.TagLong, max: this.maxValue};
 			}
 		}
-		
+
 		if (sign === "-") return this.value = sign + value;
 		return this.value = value;
 	},
@@ -140,7 +140,9 @@ var nbtlint = {
 	/**
 	 * An NBT List tag
 	 * @constructor
-	 * @param {Function} [type=undefined] - The type of the list. Leave undefined to auto-detect, or specify a TagBase constructor.
+	 * @param {Function|"any"} [type=undefined] - The type of the list.
+	 *   Leave undefined to auto-detect, "any" to support mixed types,
+	 *   or a TagBase class to restrict the list to that type.
 	 * @param {TagBase[]} [values] - An array of Tags to insert into the list.
 	 */
 	TagList: function(type, values) {
@@ -211,11 +213,13 @@ var nbtlint = {
 	},
 	/**
 	 * Parse the textual representation of an NBT Tag.
-	 * @param {string} value - The string to parse.
+	 * @param {string}  value - The string to parse.
+	 * @param {Object}  [options] - Extra options.
+	 * @param {boolean} [options.mixedLists=false] - Allow mixing different tag types in a list.
 	 * @returns {TagBase} - The parsed Tag.
 	 */
-	parse: function(value) {
-		return nbtlint._Parser.parse(value);
+	parse: function(value, options) {
+		return nbtlint._Parser.parse(value, options);
 	},
 	/**
 	 * Compare two key-value compound member pairs alphabetically.
@@ -244,8 +248,8 @@ var nbtlint = {
 		if (orderA < orderB) return -1;
 		if (orderA > orderB) return  1;
 		if (a[1].constructor !== nbtlint.TagList) return 0;
-		orderA = a[1].type ? a[1].type.prototype.sortOrder : 12;
-		orderB = b[1].type ? b[1].type.prototype.sortOrder : 12;
+		orderA = (typeof a[1].type === 'function') ? a[1].type.prototype.sortOrder : 12;
+		orderB = (typeof b[1].type === 'function') ? b[1].type.prototype.sortOrder : 12;
 		if (orderA < orderB) return -1;
 		if (orderA > orderB) return  1;
 		return 0;
@@ -311,9 +315,9 @@ var nbtlint = {
 	},
 	_printString: function(str, options) {
 		if (str.needQuotes || (str.isKey ? options.quoteKeys : !options.unquoteStrings)) {
-			
+
 			var quote;
-			
+
 			if (options.quoteChoice === "onlyDouble") {
 				quote = '"';
 			} else if (options.quoteChoice === "onlySingle") {
@@ -329,7 +333,7 @@ var nbtlint = {
 					quote = (options.quoteChoice === "preferSingle") ? "'" : '"';
 				}
 			}
-			
+
 			return quote
 				+ str.value
 					.replace(/\\/g, "\\\\")
@@ -379,12 +383,21 @@ var nbtlint = {
 		}
 		return str + "}";
 	},
+	/**
+	 * @param {nbtlint.TagList} value - The tag's value
+	 */
 	_printList: function(value, space, indent, hasName, options) {
 		var spaceBefore = hasName && !options.deflate;
 		if (value.list.length === 0) return (spaceBefore ? " [" : "[") + value.arrayPrefix + "]";
 		var isPrimitive = value.list[0].isPrimitive,
 		    l = value.list.length,
 		    i, str;
+		if (value.type === 'any') {
+			// Treat as primitive only if ALL values are primitive
+			for (i = 1; i < l && isPrimitive; ++i) {
+				isPrimitive = value.list[i].isPrimitive;
+			}
+		}
 		if (!options.expandPrimitives && isPrimitive) {
 			// One line
 			str = (spaceBefore ? " [" : "[") + value.arrayPrefix;
@@ -429,21 +442,25 @@ var nbtlint = {
 	_Parser: {
 		/**
 		 * Parse the textual representation of an NBT Tag.
-		 * @param {string} text - The string to parse.
+		 * @param {string}  text - The string to parse.
+		 * @param {Object}  [options] - Extra options.
+		 * @param {boolean} [options.mixedLists=false] - Allow mixing different tag types in a list.
 		 * @returns {TagBase} - The parsed Tag.
 		 */
-		parse: function(text) {
+		parse: function(text, options) {
 			this.string = text.replace(/\\\s*\n\s*/g, '');
 			this.cursor = 0;
-			
+
+			this.options = options || {};
+
 			var value = this.readValue();
 			this.skipWhitespace();
-			
+
 			if (this.canRead()) {
 				++this.cursor;
 				throw this.exception("Trailing data found");
 			}
-			
+
 			return value;
 		},
 		canRead: function() {
@@ -499,7 +516,7 @@ var nbtlint = {
 			this.expect("{");
 			var compound = new nbtlint.TagCompound();
 			this.skipWhitespace();
-			
+
 			while (this.canRead() && this.peek() != "}") {
 				this.skipWhitespace();
 				var key;
@@ -515,10 +532,10 @@ var nbtlint = {
 				}
 				if (!key) throw this.exception("Expected non-empty key");
 				if (key in compound.map) throw this.exception("Duplicate key");
-				
+
 				this.expect(":");
 				compound.add(key, this.readValue());
-				
+
 				if (!this.hasElementSeparator()) break;
 				if (!this.canRead()) throw this.exception("Expected a key");
 			}
@@ -529,7 +546,7 @@ var nbtlint = {
 			this.skipWhitespace();
 			if (!this.canRead()) throw this.exception("Expected a value");
 			var next = this.peek();
-			
+
 			switch (next) {
 			case "{":
 				return this.readCompound();
@@ -556,7 +573,7 @@ var nbtlint = {
 			var type = this.pop(), array;
 			this.pop();
 			this.skipWhitespace();
-			
+
 			if (!this.canRead()) throw this.exception("Expected a value");
 			switch (type) {
 			case "B":
@@ -571,13 +588,13 @@ var nbtlint = {
 			default:
 				throw this.exception("Invalid array type '" + type + "' found");
 			}
-			
+
 			while (true) {
 				if (this.peek() === "]") {
 					++this.cursor;
 					return array;
 				}
-				
+
 				var currValue = this.readValue();
 				if (currValue.constructor !== array.type) {
 					throw this.exception("Unable to insert " + currValue.tagName +
@@ -588,7 +605,7 @@ var nbtlint = {
 					if (!this.canRead()) throw this.exception("Expected a value");
 					continue;
 				}
-				
+
 				this.expect("]");
 				return array;
 			}
@@ -596,15 +613,16 @@ var nbtlint = {
 		readListTag: function() {
 			this.expect("[");
 			this.skipWhitespace();
-			
+
 			if (!this.canRead()) {
 				throw this.exception("Expected a value");
 			} else {
-				var list = new nbtlint.TagList();
-				
+				var list = new nbtlint.TagList(
+					this.options.mixedLists ? 'any' : undefined);
+
 				while (this.peek() !== "]") {
 					var val = this.readValue();
-					try {	
+					try {
 						list.push(val);
 					} catch (e) {
 						throw this.exception("Unable to insert " + val.tagName +
@@ -613,7 +631,7 @@ var nbtlint = {
 					if (!this.hasElementSeparator()) break;
 					if (!this.canRead()) throw this.exception("Expected a value");
 				}
-				
+
 				this.expect("]");
 				return list;
 			}
@@ -829,11 +847,13 @@ nbtlint.TagCompound.prototype.remove = function(key) {
  * @param {TagBase} value - The Tag to add.
  */
 nbtlint.TagList.prototype.push = function(value) {
-	this.type = this.type || value.constructor;
-	if (value.constructor !== this.type) {
-		// TODO: Explain how type is determined, suggest fix
-		throw {error: "invalid_tag_type", message: "Cannot insert " + value.constructor.name
-			+ " into a list of type " + this.type.name};
+	if (this.type != 'any') {
+		this.type = this.type || value.constructor;
+		if (value.constructor !== this.type) {
+			// TODO: Explain how type is determined, suggest fix
+			throw {error: "invalid_tag_type", message: "Cannot insert " + value.constructor.name
+				+ " into a list of type " + this.type.name};
+		}
 	}
 	this.list.push(value);
 };
