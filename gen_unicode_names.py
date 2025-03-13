@@ -143,25 +143,27 @@ if __name__ == '__main__':
             os.remove(f.path)
     print('done.', flush=True)
 
-    total = str(len(cp_names))
     print(f'Writing explicit codepoints...')
     letter_dirs = set()
+    total = str(len(cp_names))
     for i, (cp, name) in enumerate(cp_names.items(), 1):
+        print(f'{i:0{len(total)}}/{total}', end='\r', flush=True)
         # if not re.fullmatch(r'[A-Z0-9 -]+', name):
         #     print('Skipping', name, 'due to special characters')
         #     continue
-        print(f'{i:0{len(total)}}/{total}', end='\r', flush=True)
         path = f'docs/unicode/cp/{name[0]}'
         if name[0] not in letter_dirs:
             os.mkdir(path)
             letter_dirs.add(name[0])
+
         with open(f'{path}/{name[1:]}.txt', 'w', encoding='ascii') as out:
             print(f'{cp:X}', end='', file=out)
-    print(f' {'':{2*len(total)}}', end='\r')
-    total = str(len(range_names))
+
     with open(f'docs/unicode/ranges.txt', 'w', encoding='ascii', newline='\n') as out:
         for i, (lo, hi, name) in enumerate(range_names, 1):
             print(f'{name};{lo:X};{hi:X}', file=out)
+
     with open(f'docs/unicode/version.txt', 'w', encoding='ascii') as out:
         print(unicode_version, end='', file=out)
+
     print(f'Done.{'':{2*len(total)}}')
